@@ -82,7 +82,13 @@
 													
 													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $user_subdomains . ' / ' . $user_plan_subdomains . '</span>';
 													
-													$permalink = 'test';
+													$permalink = add_query_arg(array(
+														
+														'output' => 'widget',
+														'action' => 'addSubdomain',
+														'_' 	 => time(),
+														
+													),$this->parent->urls->current);
 													
 													$modal_id = 'modal_'.md5($permalink);
 
@@ -98,19 +104,28 @@
 																	
 																	echo'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'.PHP_EOL;
 																	
-																	echo'<h4 class="modal-title text-left" id="myModalLabel">Connect a domain</h4>'.PHP_EOL;
+																	echo'<h4 class="modal-title text-left" id="myModalLabel">Create a subdomain</h4>'.PHP_EOL;
 																
 																echo'</div>'.PHP_EOL;
 															  
 																echo'<div class="modal-body">'.PHP_EOL;
-																	
-																	if( $user_plan_subdomains > $user_subdomains ){
+																
+																	if( $this->parent->user->remaining_days > 0 ) {
 																		
-																		echo'<iframe data-src="'.$permalink.'" style="width: 100%;position:relative;bottom: 0;border:0;height: 450px;overflow: hidden;"></iframe>';											
+																		if( $user_plan_subdomains > $user_subdomains ){
+																			
+																			echo'<div class="loadingIframe" style="position:absolute;height:50px;width:100%;background-position:50% center;background-repeat: no-repeat;background-image:url(\'' . $this->parent->server->url . '/c/p/live-template-editor-server/assets/loader.gif\');"></div>';
+																			
+																			echo'<iframe data-src="'.$permalink.'" style="width: 100%;position:relative;bottom: 0;border:0;height: 450px;overflow: hidden;"></iframe>';											
+																		}
+																		else{
+																			
+																			echo'You cannot add more subdomains, please contact the support team...';
+																		}
 																	}
 																	else{
 																		
-																		echo'You cannot add more subdomains, please contact the support team...';
+																		echo'License expired, please contact the support team...';
 																	}
 
 																echo'</div>'.PHP_EOL;
@@ -146,7 +161,7 @@
 																	
 																	echo'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'.PHP_EOL;
 																	
-																	echo'<h4 class="modal-title text-left" id="myModalLabel">Add a subdomain</h4>'.PHP_EOL;
+																	echo'<h4 class="modal-title text-left" id="myModalLabel">Connect an existing domain</h4>'.PHP_EOL;
 																
 																echo'</div>'.PHP_EOL;
 															  
@@ -307,11 +322,14 @@
 														
 														$domainPath = '';
 														
-														foreach($this->parent->user->domains->list as $domain){
+														foreach($this->parent->user->domains->list as $domains){
 															
-															if(isset($domain->urls[$layer->ID])){
-																
-																$domainPath = $domain->urls[$layer->ID];
+															foreach($domains as $domain){
+															
+																if(isset($domain->urls[$layer->ID])){
+																	
+																	$domainPath = $domain->urls[$layer->ID];
+																}
 															}
 														}
 														

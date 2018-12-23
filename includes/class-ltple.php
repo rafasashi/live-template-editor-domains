@@ -16,6 +16,9 @@ class LTPLE_Domains {
 	var $enable_domains 	= 'off';
 	var $enable_subdomains 	= 'off';
 	var $default_domains 	= null;
+	var $disclaimer			= '';
+	var $agreeButton		= 'I agree';
+	var $disagreeButton		= 'I disagree';
 
 	/**
 	 * Constructor function.
@@ -206,12 +209,12 @@ class LTPLE_Domains {
 			if( $domain = get_posts(array(
 			
 				'post_type' => 'user-domain',
-				'post_title' => defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'],
+				'title' 	=> defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'],
 			
 			)) ){
 				
 				// get urls
-				
+
 				if( $domain[0]->urls = get_post_meta($domain[0]->ID ,'domainUrls', true) ){
 					
 					// get path
@@ -220,9 +223,61 @@ class LTPLE_Domains {
 
 						if( '/' . $path == $_SERVER['REQUEST_URI'] ){
 							
-							$this->parent->layer->set_layer($layerId);
+							// check license
 							
-							include( $this->parent->views . '/layer.php' );
+							if( $this->parent->users->get_user_remaining_days($domain[0]->post_author) > 0 ) {
+								
+								// get domain type
+								
+								$domainType = $this->get_domain_type( $domain[0]->post_title );
+								
+								if( $domainType == 'subdomain' ){
+									
+									if( $this->parent->user->loggedin || !empty($_COOKIE['_ltple_disclaimer']) ){
+										
+										// output subdomain layer
+											
+										$this->parent->layer->set_layer($layerId);
+										
+										include( $this->parent->views . '/layer.php' );										
+									}
+									else{
+										
+										//check disclaimer
+										
+										$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+										
+										if( !empty($this->disclaimer) ){
+											
+											$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
+											$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+											
+											include( $this->views . '/disclaimer.php' );
+										}
+										else{
+											
+											// output subdomain layer
+											
+											$this->parent->layer->set_layer($layerId);
+										
+											include( $this->parent->views . '/layer.php' );
+										}
+									}
+								}
+								else{
+									
+									// output domain layer
+									
+									$this->parent->layer->set_layer($layerId);
+									
+									include( $this->parent->views . '/layer.php' );								
+								}
+							}
+							else{
+								
+								echo 'License expired, please contact the support team.';
+							}
+							
 							exit;
 						}
 					}
@@ -255,12 +310,19 @@ class LTPLE_Domains {
 	}
 	
 	public function get_panel_shortcode(){
-		
+
 		if($this->parent->user->loggedin){
 			
-			include($this->parent->views . '/navbar.php');
+			if( !empty($_REQUEST['output']) && $_REQUEST['output'] == 'widget' ){
+				
+				include($this->views . '/widget.php');
+			}
+			else{
 			
-			include($this->views . '/panel.php');
+				include($this->parent->views . '/navbar.php');
+			
+				include($this->views . '/panel.php');
+			}
 		}
 		else{
 			

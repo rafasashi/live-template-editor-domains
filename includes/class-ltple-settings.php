@@ -115,6 +115,28 @@ class LTPLE_Domains_Settings {
 					'placeholder'	=> 'example.com',
 					'style'			=> 'height:150px;width:250px;',
 				),
+				array(
+					'id' 			=> 'subdomain_disclamer',
+					'label'			=> __( 'Subdomain Disclamer' , $this->plugin->slug ),
+					'description'	=> 'This disclamer will pop up during the first subdomain session of a visitor',
+					'type'			=> 'textarea',
+					'placeholder'	=> 'Your disclamer text here',
+					'style'			=> 'height:150px;width:250px;',
+				),
+				array(
+					'id' 			=> 'disclamer_agree_buttom',
+					'label'			=> __( 'Agree button' , $this->plugin->slug ),
+					'type'			=> 'text',
+					'placeholder'	=> 'I Agree',
+					'style'			=> 'width:250px;',
+				),
+				array(
+					'id' 			=> 'disclamer_disagree_buttom',
+					'label'			=> __( 'Disagree button' , $this->plugin->slug ),
+					'type'			=> 'text',
+					'placeholder'	=> 'I Disagree',
+					'style'			=> 'width:250px;',
+				),
 			)
 		);		
 		

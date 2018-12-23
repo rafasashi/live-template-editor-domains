@@ -18,6 +18,8 @@ class LTPLE_Domains_User {
 			
 			$this->list = $this->get_domain_list( $this->parent->user, true );
 			
+			$this->save_domain();
+			
 			$this->save_urls();
 		}
 	}
@@ -71,6 +73,88 @@ class LTPLE_Domains_User {
 		$user_plan = $this->parent->plan->get_user_plan_info($this->parent->user->ID);
 		
 		return $user_plan['info']['total_subdomain_amount'];
+	}
+	
+	public function save_domain(){
+		
+		if( !empty($_POST['action']) ){
+			
+			if( $_POST['action'] == 'addSubdomain' ){
+				
+				// validate subdomain
+				
+				$domain = !empty($_POST['domain']) ? $_POST['domain'] : '';
+				
+				$subdomain = !empty($_POST['subdomain']) ? $_POST['subdomain'] : '';
+				
+				$default_domains = $this->parent->domains->get_default_domains();
+				
+				if( strlen($subdomain) < 6 ){
+					
+					// error length
+					
+					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is smaller than 6 characters</div>';
+				}
+				elseif( !ctype_alnum($subdomain) ){
+					
+					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is not alphanumeric, please use only letters and numbers</div>';
+				}
+				elseif( !in_array($domain,$default_domains) ){
+					
+					// error domain
+					
+					$_SESSION['message'] .= '<div class="alert alert-warning">This shared domain is not registered</div>';
+				}
+				elseif( get_posts(array(
+				
+					'post_type' => 'user-domain',
+					'title' 	=> $subdomain . '.' . $domain,
+				
+				)) ){ 
+
+					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is already taken</div>';
+				}
+				else{
+					
+					$user_subdomains 		= count($this->parent->user->domains->list['subdomain']);
+					$user_plan_subdomains 	= $this->parent->user->domains->get_user_plan_subdomains();
+					
+					if( $user_plan_subdomains > $user_subdomains ){
+						
+						// add subdomain
+						
+						$post_id = wp_insert_post( array(
+						
+							'post_title' 		=> $subdomain . '.' . $domain,
+							'post_type'     	=> 'user-domain',
+							'post_status'     	=> 'publish',
+							'post_author' 		=> $this->parent->user->ID,
+						));					
+					
+						$_SESSION['message'] .= '<div class="alert alert-success">You have successfully added a subdomain</div>';						
+					
+
+					}
+					else{
+					
+						$_SESSION['message'] .= '<div class="alert alert-warning">You cannot create more subdomains</div>';
+					}
+				}
+				
+				$_SESSION['message'] .= '<script>' . PHP_EOL;
+					$_SESSION['message'] .= 'window.onunload = refreshParent;' . PHP_EOL;
+					$_SESSION['message'] .= 'function refreshParent() {' . PHP_EOL;
+						$_SESSION['message'] .= 'window.opener.location.reload();' . PHP_EOL;
+					$_SESSION['message'] .= '}' . PHP_EOL;
+				$_SESSION['message'] .= '</script>' . PHP_EOL;
+			}
+			elseif( $_POST['action'] == 'addDomain' ){
+				
+				// add connected domain
+				
+				
+			}
+		}
 	}
 	
 	public function save_urls(){
