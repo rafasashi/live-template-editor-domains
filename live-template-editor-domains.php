@@ -45,24 +45,27 @@
 	}	
 	
 	add_filter( 'plugins_loaded', function(){
-
-		// Load plugin functions
 		
-		require_once( 'includes/functions.php' );	
-		
-		// Load plugin class files
-
-		require_once( 'includes/class-ltple.php' );
-		require_once( 'includes/class-ltple-settings.php' );
-
-		// Autoload plugin libraries
-		
-		$lib = glob( __DIR__ . '/includes/lib/class-ltple-*.php');
-		
-		foreach($lib as $file){
+		if( class_exists('LTPLE_Client') ){
 			
-			require_once( $file );
+			// Load plugin functions
+			
+			require_once( 'includes/functions.php' );	
+			
+			// Load plugin class files
+
+			require_once( 'includes/class-ltple.php' );
+			require_once( 'includes/class-ltple-settings.php' );
+
+			// Autoload plugin libraries
+			
+			$lib = glob( __DIR__ . '/includes/lib/class-ltple-*.php');
+			
+			foreach($lib as $file){
+				
+				require_once( $file );
+			}
+		
+			LTPLE_Domains('1.1.0');
 		}
-	
-		LTPLE_Domains('1.1.0');	
 	});

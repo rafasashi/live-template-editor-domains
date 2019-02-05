@@ -19,6 +19,7 @@ class LTPLE_Domains {
 	var $disclaimer			= '';
 	var $agreeButton		= 'I agree';
 	var $disagreeButton		= 'I disagree';
+	var $currentDomain		= null;
 
 	/**
 	 * Constructor function.
@@ -88,7 +89,7 @@ class LTPLE_Domains {
 		add_filter( 'ltple_user_loaded', array( $this, 'add_user_attribute'));	
 		
 		// add panel shortocode
-		
+
 		add_shortcode('ltple-client-domains', array( $this , 'get_panel_shortcode' ) );	
 
 		// add panel url
@@ -98,6 +99,8 @@ class LTPLE_Domains {
 		// add link to theme menu
 		
 		add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'));	
+		
+		add_filter( 'ltple_collect_user_information', array( $this, 'collect_user_information'));	
 		
 		// add layer fields
 		
@@ -123,6 +126,8 @@ class LTPLE_Domains {
 		
 		add_filter( 'ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
 		add_filter( 'ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
+		
+		$this->add_star_triggers();
 		
 		// addon post types
 		
@@ -206,30 +211,37 @@ class LTPLE_Domains {
 			
 			// get domain
 			
+			$domain_name = defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'];
+			
 			if( $domain = get_posts(array(
 			
 				'post_type' => 'user-domain',
-				'title' 	=> defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'],
+				'title' 	=> $domain_name,
 			
 			)) ){
 				
+				if( !empty($domain[0]) ){
+					
+					$this->currentDomain = $domain[0];
+				}
+				
 				// get urls
 
-				if( $domain[0]->urls = get_post_meta($domain[0]->ID ,'domainUrls', true) ){
+				if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
 					
 					// get path
 					
-					foreach( $domain[0]->urls as $layerId => $path ){
+					foreach( $this->currentDomain->urls as $layerId => $path ){
 
 						if( '/' . $path == $_SERVER['REQUEST_URI'] ){
 							
 							// check license
 							
-							if( $this->parent->users->get_user_remaining_days($domain[0]->post_author) > 0 ) {
+							if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
 								
 								// get domain type
 								
-								$domainType = $this->get_domain_type( $domain[0]->post_title );
+								$domainType = $this->get_domain_type( $domain->post_title );
 								
 								if( $domainType == 'subdomain' ){
 									
@@ -282,8 +294,13 @@ class LTPLE_Domains {
 						}
 					}
 				}
+				elseif( !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/' ){
+					
+					wp_redirect($this->parent->urls->home);
+					exit;
+				}
 				
-				echo 'Url not found...';
+				include($this->views . '/home.php');
 				exit;
 			}
 			
@@ -312,7 +329,7 @@ class LTPLE_Domains {
 	public function get_panel_shortcode(){
 
 		if($this->parent->user->loggedin){
-			
+
 			if( !empty($_REQUEST['output']) && $_REQUEST['output'] == 'widget' ){
 				
 				include($this->views . '/widget.php');
@@ -369,29 +386,29 @@ class LTPLE_Domains {
 
 		// add theme menu link
 	
-		echo'<li style="position:relative;">';
+		echo'<li style="position:relative;background:#182f42;">';
 			
 			echo '<a href="'. $this->parent->urls->domains . '"><span class="glyphicon glyphicon-link" aria-hidden="true"></span> Domains & URLs</a>';
 
 		echo'</li>';
-	}								
-	
-	public function hasHosting($plan){
+	}
+
+	public function collect_user_information(){
 		
-		if( !empty($plan['meta']) ){
+		if( $this->parent->user->remaining_days > 0 ) {
 			
-			foreach( $plan['meta'] as $meta ){
-				
-				if(!empty($meta['domain_name'])){
-					
-					return true;
-				}
+			$domains = $this->parent->user->domains->get_domain_list($this->parent->user);
+			
+			$user_subdomains 		= ( !empty($domains['subdomain']) ? count($domains['subdomain']) : 0 );
+			$user_plan_subdomains 	= $this->parent->user->domains->get_user_plan_subdomains();
+													
+			if( $user_plan_subdomains > 0 && $user_subdomains == 0 ){		
+
+				include($this->views . '/modals/modal.php');
 			}
 		}
-		
-		return false;
-	}
-	
+	}	
+
 	public function add_layer_options($term_slug){
 		
 		if(!$domain_amount = get_option('domain_amount_' . $term_slug)){
@@ -731,6 +748,16 @@ class LTPLE_Domains {
 	public function add_user_plan_info( $user_id ){
 		
 
+	}
+	
+	public function add_star_triggers(){
+
+		$this->parent->stars->triggers['domains & urls']['ltple_subdomain_reserved'] = array(
+				
+			'description' => 'when you reserve a subdomain'
+		);	
+
+		return true;
 	}
 	
 	/**

@@ -83,11 +83,16 @@ class LTPLE_Domains_User {
 				
 				// validate subdomain
 				
-				$domain = !empty($_POST['domain']) ? $_POST['domain'] : '';
+				$domain = !empty($_POST['domain']) ? strtolower($_POST['domain']) : '';
 				
-				$subdomain = !empty($_POST['subdomain']) ? $_POST['subdomain'] : '';
+				$subdomain = !empty($_POST['subdomain']) ? strtolower($_POST['subdomain']) : '';
 				
 				$default_domains = $this->parent->domains->get_default_domains();
+				
+				if(!isset($_SESSION['message'])){
+					
+					$_SESSION['message']='';
+				}
 				
 				if( strlen($subdomain) < 6 ){
 					
@@ -116,9 +121,9 @@ class LTPLE_Domains_User {
 				}
 				else{
 					
-					$user_subdomains 		= count($this->parent->user->domains->list['subdomain']);
-					$user_plan_subdomains 	= $this->parent->user->domains->get_user_plan_subdomains();
-					
+					$user_subdomains 		= ( !empty($this->parent->user->domains->list['subdomain']) ? count($this->parent->user->domains->list['subdomain']) : 0 );
+					$user_plan_subdomains 	= $this->get_user_plan_subdomains();
+
 					if( $user_plan_subdomains > $user_subdomains ){
 						
 						// add subdomain
@@ -131,9 +136,9 @@ class LTPLE_Domains_User {
 							'post_author' 		=> $this->parent->user->ID,
 						));					
 					
-						$_SESSION['message'] .= '<div class="alert alert-success">You have successfully added a subdomain</div>';						
+						do_action('ltple_subdomain_reserved');
 					
-
+						$_SESSION['message'] .= '<div class="alert alert-success">You have successfully added a subdomain</div>';
 					}
 					else{
 					

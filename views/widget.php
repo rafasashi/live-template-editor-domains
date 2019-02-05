@@ -4,6 +4,10 @@
 		
 		if( $_REQUEST['action'] == 'addSubdomain' ){
 			
+			$suggested_name = strtolower($this->parent->user->user_login);
+			
+			$output = ( !empty( $_REQUEST['output']) ? $_REQUEST['output'] : 'default' );
+			
 			echo'<div style="margin:20px 2px;">';
 				
 				echo'<p>';
@@ -14,11 +18,11 @@
 				
 				echo'<form action="' . $this->parent->urls->current . '" method="post">';
 					
-					echo'<input type="hidden" name="output" value="widget" />';
+					echo'<input type="hidden" name="output" value="'.$output.'" />';
 					
 					echo'<input type="hidden" name="action" value="addSubdomain" />';
 					
-					echo'<input type="text" name="subdomain" value="" placeholder="mysubdomain" class="form-control input-sm" style="width:270px;display:inline-block;" />';
+					echo'<input type="text" name="subdomain" value="' . $suggested_name . '" placeholder="mysubdomain" class="form-control input-sm" style="width:270px;display:inline-block;" />';
 					
 					echo'<select name="domain" class="form-control input-sm" style="width:180px;display:inline-block;">';
 						
