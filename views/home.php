@@ -32,7 +32,7 @@
 	
 	// get description
 	
-	$description = wp_trim_words(get_user_meta($this->currentDomain->post_author, 'description', true),80,' [...]');
+	$description = wp_trim_words(get_user_meta($this->currentDomain->post_author, 'description', true),50,' [...]');
 
 	if( empty($description) ){
 		
@@ -313,6 +313,7 @@
 			  background-image: url(<?php echo $background_image; ?>);
 			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $this->parent->settings->mainColor; ?>63), url(<?php echo $background_image; ?>);
 			  background-size: cover;
+			  background-position: center;
 			}
 
 			@keyframes arrowWiggle {

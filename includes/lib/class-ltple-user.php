@@ -16,49 +16,12 @@ class LTPLE_Domains_User {
 
 		if( $this->parent->user->loggedin ){
 			
-			$this->list = $this->get_domain_list( $this->parent->user, true );
+			$this->list = $this->parent->domains->get_user_domain_list( $this->parent->user, true );
 			
 			$this->save_domain();
 			
 			$this->save_urls();
 		}
-	}
-	
-	public function get_domain_list( $user = null ){
-		
-		$list = array('subdomain'=>[],'domain'=>[]);
-		
-		$user_id = 0;
-		
-		if( is_numeric($user) ){
-			
-			$user_id = intval($user);
-		}
-		elseif( !empty($user->ID) ){
-			
-			$user_id = $user->ID;
-		}
-		
-		if( $domains = get_posts(array(
-			
-			'author'   		=> $user_id,
-			'post_type'   	=> 'user-domain',
-			'post_status' 	=> 'publish',
-			//'numberposts' => -1,
-			
-		))){
-			
-			foreach( $domains as $domain ){
-				
-				$domain->urls = get_post_meta($domain->ID ,'domainUrls', true);
-			
-				$domain->type = $this->parent->domains->get_domain_type($domain->post_title);
-				
-				$list[$domain->type][] = $domain;
-			}				
-		}
-
-		return $list;
 	}
 	
 	public function get_user_plan_domains(){

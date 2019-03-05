@@ -78,7 +78,11 @@ class LTPLE_Domains {
 
 		//init addon 
 		
-		add_action( 'init', array( $this, 'init' ));	
+		add_action( 'init', array( $this, 'init' ));
+		
+		// social icons in profile
+		
+		add_action( 'ltple_before_social_icons', array( $this, 'get_social_icons'));		
 
 		// Custom template path
 		
@@ -198,6 +202,43 @@ class LTPLE_Domains {
 		
 		return $domain_type;
 	}
+	
+	public function get_user_domain_list( $user = null ){
+		
+		$list = array('subdomain'=>[],'domain'=>[]);
+		
+		$user_id = 0;
+		
+		if( is_numeric($user) ){
+			
+			$user_id = intval($user);
+		}
+		elseif( !empty($user->ID) ){
+			
+			$user_id = $user->ID;
+		}
+		
+		if( $domains = get_posts(array(
+			
+			'author'   		=> $user_id,
+			'post_type'   	=> 'user-domain',
+			'post_status' 	=> 'publish',
+			//'numberposts' => -1,
+			
+		))){
+			
+			foreach( $domains as $domain ){
+				
+				$domain->urls = get_post_meta($domain->ID ,'domainUrls', true);
+			
+				$domain->type = $this->parent->domains->get_domain_type($domain->post_title);
+				
+				$list[$domain->type][] = $domain;
+			}				
+		}
+
+		return $list;
+	}
 		
 	public function template_path( $template_path ){
 		
@@ -306,7 +347,30 @@ class LTPLE_Domains {
 			
 			echo 'This domain is not registered yet...';
 			exit;
-		}		
+		}	
+	}
+	
+	public function get_social_icons(){
+		
+		if( $this->parent->profile->id > 0 ){
+		
+			$user_domains = $this->get_user_domain_list( $this->parent->profile->id );
+			
+			if( !empty($user_domains['subdomain']) ){
+				
+				foreach( $user_domains['subdomain'] as $domain ){
+					
+					if( !empty($domain->post_title) ){
+							
+						echo'<a href="' . $this->parent->request->proto . $domain->post_title . '" style="margin:5px;display:inline-block;" ref="dofollow">';
+							
+							echo'<img src="' . $this->parent->settings->options->social_icon . '" style="height:30px;width:30px;border-radius:250px;" />';
+							
+						echo'</a>';
+					}
+				}
+			}
+		}
 	}
 	
 	public function header(){
@@ -397,7 +461,7 @@ class LTPLE_Domains {
 		
 		if( $this->parent->user->remaining_days > 0 ) {
 			
-			$domains = $this->parent->user->domains->get_domain_list($this->parent->user);
+			$domains = $this->get_user_domain_list($this->parent->user);
 			
 			$user_subdomains 		= ( !empty($domains['subdomain']) ? count($domains['subdomain']) : 0 );
 			$user_plan_subdomains 	= $this->parent->user->domains->get_user_plan_subdomains();
@@ -804,6 +868,7 @@ class LTPLE_Domains {
 		
 		//wp_register_style( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'css/frontend.css', array(), $this->_version );
 		//wp_enqueue_style( $this->_token . '-frontend' );
+	
 	} // End enqueue_styles ()
 
 	/**
@@ -814,8 +879,9 @@ class LTPLE_Domains {
 	 */
 	public function enqueue_scripts () {
 		
-		wp_register_script( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'js/frontend' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version );
-		wp_enqueue_script( $this->_token . '-frontend' );
+		//wp_register_script( $this->_token . '-frontend', esc_url( $this->assets_url ) . 'js/frontend' . $this->script_suffix . '.js', array( 'jquery' ), $this->_version );
+		//wp_enqueue_script( $this->_token . '-frontend' );
+	
 	} // End enqueue_scripts ()
 
 	/**
