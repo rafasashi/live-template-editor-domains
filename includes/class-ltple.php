@@ -20,6 +20,7 @@ class LTPLE_Domains {
 	var $agreeButton		= 'I agree';
 	var $disagreeButton		= 'I disagree';
 	var $currentDomain		= null;
+	var $userDomains		= array();
 
 	/**
 	 * Constructor function.
@@ -83,7 +84,7 @@ class LTPLE_Domains {
 		// social icons in profile
 		
 		add_action( 'ltple_before_social_icons', array( $this, 'get_social_icons'));		
-
+		
 		// Custom template path
 		
 		add_filter( 'template_include', array( $this, 'template_path'), 1 );	
@@ -102,35 +103,39 @@ class LTPLE_Domains {
 		
 		// add link to theme menu
 		
-		add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'));	
+		add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'),9);	
 		
 		add_filter( 'ltple_collect_user_information', array( $this, 'collect_user_information'));	
 		
 		// add layer fields
 		
-		add_filter( 'ltple_layer_options', array( $this, 'add_layer_options'),10,1);
-		add_filter( 'ltple_layer_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
+		add_filter( 'ltple_account_options', array( $this, 'add_account_options'),10,1);
+		add_filter( 'ltple_account_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
 		add_action( 'ltple_save_layer_fields', array( $this, 'save_layer_fields' ),10,1);			
 		
 		// add layer colums
 		
-		add_filter( 'ltple_layer_type_columns', array( $this, 'add_layer_columns'));
-		add_filter( 'ltple_layer_range_columns', array( $this, 'add_layer_columns'));
 		add_filter( 'ltple_layer_option_columns', array( $this, 'add_layer_columns'));
 		
 		add_filter( 'ltple_layer_column_content', array( $this, 'add_layer_column_content'),10,2);
 		
 		// handle plan
 		
+		add_filter( 'ltple_subscription_plan_info', array( $this, 'get_subscription_plan_info'),10,2);	
+		
 		add_filter( 'ltple_api_layer_plan_option', array( $this, 'add_api_layer_plan_option'),10,1);	
 		add_filter( 'ltple_api_layer_plan_option_total', array( $this, 'add_api_layer_plan_option_total'),10,2);
 		
-		add_filter( 'ltple_plan_shortcode_attributes', array( $this, 'add_plan_shortcode_attributes'),10,2);
+		add_filter( 'ltple_plan_table', array( $this, 'add_plan_table_attributes'),10,2);
 		add_filter( 'ltple_plan_subscribed', array( $this, 'handle_subscription_plan'),10);
 		
 		add_filter( 'ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
 		add_filter( 'ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
 		
+		add_filter( 'ltple_dashboard_connect_sidebar', array( $this, 'get_sidebar_content' ),2,3);
+			 
+		add_action( 'ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
+			 
 		$this->add_star_triggers();
 		
 		// addon post types
@@ -156,6 +161,7 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 		
+		add_filter('post_type_link', array( $this, 'get_permalink'),1,2);
 		
 	} // End __construct ()
 	
@@ -218,32 +224,118 @@ class LTPLE_Domains {
 			$user_id = $user->ID;
 		}
 		
-		if( $domains = get_posts(array(
+		if( !isset($this->userDomains[$user_id]) ){
 			
-			'author'   		=> $user_id,
-			'post_type'   	=> 'user-domain',
-			'post_status' 	=> 'publish',
-			//'numberposts' => -1,
-			
-		))){
-			
-			foreach( $domains as $domain ){
+			if( $domains = get_posts(array(
 				
-				$domain->urls = get_post_meta($domain->ID ,'domainUrls', true);
-			
-				$domain->type = $this->parent->domains->get_domain_type($domain->post_title);
+				'author'   		=> $user_id,
+				'post_type'   	=> 'user-domain',
+				'post_status' 	=> 'publish',
+				//'numberposts' => -1,
 				
-				$list[$domain->type][] = $domain;
-			}				
+			))){
+				
+				foreach( $domains as $domain ){
+					
+					$domain->urls = get_post_meta($domain->ID ,'domainUrls', true);
+				
+					$domain->type = $this->parent->domains->get_domain_type($domain->post_title);
+					
+					$list[$domain->type][] = $domain;
+				}
+				
+				$this->userDomains[$user_id] = $list;
+			}
 		}
-
+		else{
+			
+			$list = $this->userDomains[$user_id];
+		}
+			
 		return $list;
 	}
 		
 	public function template_path( $template_path ){
 		
-		
 		return $template_path;
+	}
+	
+	function get_permalink( $post_link, $post ){
+
+		
+		if( $post->post_type == 'cb-default-layer' ){
+			
+			
+		}
+		elseif( $post->post_type == 'user-layer' ){
+			
+			
+		}
+		elseif( $post->post_status == 'publish' ){
+			
+			if( $post->post_type == 'user-page' ){
+
+				if( $domainUrl = $this->get_domain_permalink($post) ){
+					
+					$post_link = $domainUrl;
+				}
+				else{
+			
+					$post_link = $this->parent->urls->home . '?t='  . $post->ID;
+				}
+			}
+			else{
+				
+				$storages = $this->parent->layer->get_layer_storages();
+				
+				if( isset( $storages[$post->post_type] ) ){
+
+					if( $domainUrl = $this->get_domain_permalink($post) ){
+						
+						$post_link = $domainUrl;
+					}
+				}
+			}
+		}
+		else{
+			
+			$post_link = $this->parent->urls->home . '?t='  . $post->ID;
+		}
+					
+		return $post_link;
+	}
+	
+	public function get_domain_permalink($post){
+		
+		$domainUrl 	= null;
+		$domainName = '';
+		$domainPath = '';
+					
+		$list = $this->get_user_domain_list($post->post_author);
+		
+		if( !empty($list) ){
+			
+			foreach($list as $domains){
+				
+				foreach($domains as $domain){
+					
+					if(isset($domain->urls[$post->ID])){
+						
+						$domainName = $domain->post_title;
+						$domainPath = $domain->urls[$post->ID];
+						
+						break;
+					}
+				}
+			}
+			
+			if( !empty($domainName) ){
+				
+				$domainUrl = $this->parent->request->proto . $domainName.'/'.$domainPath;
+			}
+		}
+
+		return $domainUrl;
 	}
 	
 	public function init(){	
@@ -272,63 +364,76 @@ class LTPLE_Domains {
 					
 					// get path
 					
+					list($request_uri,$request_args) = explode('?', $_SERVER['REQUEST_URI'], 2);
+					
 					foreach( $this->currentDomain->urls as $layerId => $path ){
-
-						if( '/' . $path == $_SERVER['REQUEST_URI'] ){
+						
+						if( '/' . $path == $request_uri ){
 							
 							// check license
 							
 							if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
 								
-								// get domain type
+								$layer = get_post($layerId);
 								
-								$domainType = $this->get_domain_type( $domain->post_title );
-								
-								if( $domainType == 'subdomain' ){
+								if( !empty($layer) && $layer->post_status == 'publish' ){
 									
-									if( $this->parent->user->loggedin || !empty($_COOKIE['_ltple_disclaimer']) ){
+									// get domain type
+									
+									$domainType = $this->get_domain_type( $domain->post_title );
+									
+									if( $domainType == 'subdomain' ){
 										
-										// output subdomain layer
+										if( $this->parent->user->loggedin || !empty($_COOKIE['_ltple_disclaimer']) ){
 											
-										$this->parent->layer->set_layer($layerId);
-										
-										include( $this->parent->views . '/layer.php' );										
-									}
-									else{
-										
-										//check disclaimer
-										
-										$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-										
-										if( !empty($this->disclaimer) ){
+											// output subdomain layer
+												
+											$this->parent->layer->set_layer($layer);
 											
-											$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
-											$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
-											
-											include( $this->views . '/disclaimer.php' );
+											include( $this->parent->views . '/layer.php' );										
 										}
 										else{
 											
-											// output subdomain layer
+											//check disclaimer
 											
-											$this->parent->layer->set_layer($layerId);
-										
-											include( $this->parent->views . '/layer.php' );
+											$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+											
+											if( !empty($this->disclaimer) ){
+												
+												$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
+												$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+												
+												include( $this->views . '/disclaimer.php' );
+											}
+											else{
+												
+												// output subdomain layer
+												
+												$this->parent->layer->set_layer($layerId);
+											
+												include( $this->parent->views . '/layer.php' );
+											}
 										}
+									}
+									else{
+										
+										// output domain layer
+										
+										$this->parent->layer->set_layer($layerId);
+										
+										include( $this->parent->views . '/layer.php' );								
 									}
 								}
 								else{
 									
-									// output domain layer
-									
-									$this->parent->layer->set_layer($layerId);
-									
-									include( $this->parent->views . '/layer.php' );								
+									include($this->views . '/home.php');
 								}
 							}
 							else{
 								
-								echo 'License expired, please contact the support team.';
+								//echo 'License expired, please contact the support team.';
+							
+								include($this->views . '/home.php');
 							}
 							
 							exit;
@@ -446,15 +551,94 @@ class LTPLE_Domains {
 		$this->parent->urls->domains = $this->parent->urls->home . '/' . $slug . '/';		
 	}
 	
+	public function get_sidebar_content($sidebar,$currentTab,$output){
+		
+		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '">Domains</a></li>';
+
+		//$sidebar .= '<li'.( $currentTab == 'urls' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '?tab=urls">Urls & Pages</a></li>';
+		
+		return $sidebar;
+	}
+	
+	public function get_edit_layer_url(){
+		
+		if( $this->parent->layer->is_hosted($this->parent->user->layer) ){
+		
+			//$post_type = get_post_type_object( $this->parent->user->layer->post_type );
+			
+			echo'<hr>';
+			
+			echo'<label style="margin:0 11px 0 7px;">URL</label>';
+			
+			echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
+				
+				$default_url = 'None';
+				
+				if( $this->parent->user->layer->post_type != 'user-page' ){
+				
+					$post_type = get_post_type_object($this->parent->user->layer->post_type);
+					
+					if( !empty($post_type->rewrite['slug']) ){
+					
+						$default_url = str_replace($this->parent->request->proto,'',$this->parent->urls->parse_permalink($this->parent->urls->home . '/' . $post_type->rewrite['slug'],$this->parent->user->layer));
+					}
+				}
+				
+				echo'<option value="-1">'.$default_url.'</option>';
+				
+				if( !empty($this->parent->user->domains->list) ){
+					
+					$domainName = '';
+					
+					foreach( $this->parent->user->domains->list as $domain_type => $domains ){
+						
+						foreach( $domains as $domain ){
+						
+							if( isset($domain->domainUrls[$this->parent->user->layer->ID]) ){
+								
+								$domainName = $domain->post_title;
+							}																
+							
+							echo'<option value="' . $domain->ID . '"' . ( ( $domainName == $domain->post_title ) ? ' selected="true"' : '' ) . '>';
+							
+								echo $domain->post_title;
+
+							echo'</option>';
+						}
+					}
+				}
+			
+			echo'</select>';
+			
+			echo' / ';
+			
+			$domainPath = $this->parent->user->layer->post_name;
+			
+			foreach($this->parent->user->domains->list as $domains){
+				
+				foreach($domains as $domain){
+				
+					if(isset($domain->urls[$this->parent->user->layer->ID])){
+						
+						$domainPath = $domain->urls[$this->parent->user->layer->ID];
+					}
+				}
+			}
+			
+			echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" />';
+		}
+	}
+	
 	public function add_theme_menu_link(){
 
 		// add theme menu link
-	
+
 		echo'<li style="position:relative;background:#182f42;">';
 			
-			echo '<a href="'. $this->parent->urls->domains . '"><span class="glyphicon glyphicon-link" aria-hidden="true"></span> Domains & URLs</a>';
+			echo '<a href="'. $this->parent->urls->domains . '"><span class="glyphicon glyphicon-link" aria-hidden="true"></span> Connected Domains</a>';
 
 		echo'</li>';
+
 	}
 
 	public function collect_user_information(){
@@ -473,7 +657,7 @@ class LTPLE_Domains {
 		}
 	}	
 
-	public function add_layer_options($term_slug){
+	public function add_account_options($term_slug){
 		
 		if(!$domain_amount = get_option('domain_amount_' . $term_slug)){
 			
@@ -538,7 +722,7 @@ class LTPLE_Domains {
 
 			$fields.='<span class="input-group-addon" style="color: #fff;padding: 5px 10px;background: #9E9E9E;">+</span>';
 			
-			$fields.='<input type="number" step="1" min="0" max="5" placeholder="0" name="'.$taxonomy_name.'-domain-amount" id="'.$taxonomy_name.'-domain-amount" style="width: 60px;" value="'.$domain_amount.'"/>';					
+			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-domain-amount" id="'.$taxonomy_name.'-domain-amount" style="width: 60px;" value="'.$domain_amount.'"/>';					
 			
 		$fields.='</div>';
 		
@@ -566,7 +750,7 @@ class LTPLE_Domains {
 
 			$fields.='<span class="input-group-addon" style="color: #fff;padding: 5px 10px;background: #9E9E9E;">+</span>';
 			
-			$fields.='<input type="number" step="1" min="0" max="5" placeholder="0" name="'.$taxonomy_name.'-subdomain-amount" id="'.$taxonomy_name.'-subdomain-amount" style="width: 60px;" value="'.$subdomain_amount.'"/>';					
+			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-subdomain-amount" id="'.$taxonomy_name.'-subdomain-amount" style="width: 60px;" value="'.$subdomain_amount.'"/>';					
 			
 		$fields.='</div>';
 		
@@ -581,9 +765,9 @@ class LTPLE_Domains {
 
 			update_option('domain_amount_' . $term->slug, round(intval(sanitize_text_field($_POST[$term->taxonomy . '-domain-amount'])),1));			
 		}			
-	
+		
 		if( isset($_POST[$term->taxonomy .'-subdomain-amount']) && is_numeric($_POST[$term->taxonomy .'-subdomain-amount']) ){
-
+			
 			update_option('subdomain_amount_' . $term->slug, round(intval(sanitize_text_field($_POST[$term->taxonomy . '-subdomain-amount'])),1));			
 		}		
 	}
@@ -639,58 +823,61 @@ class LTPLE_Domains {
 		}
 	}
 	
-	public function add_api_layer_plan_option ($terms){
+	public function add_api_layer_plan_option ($term){
 		
-		$this->parent->admin->html .= '<td style="width:150px;">';
+		$this->parent->admin->html .= '<td>';
 		
-			foreach($terms as $term){
+			$this->parent->admin->html .= '<span style="display:block;padding:1px 0 3px 0;margin:0;">';
 				
-				$this->parent->admin->html .= '<span style="display:block;padding:1px 0 3px 0;margin:0;">';
+				if($term->options['domain_amount']==1){
 					
-					if($term->options['domain_amount']==1){
-						
-						$this->parent->admin->html .= '+'.$term->options['domain_amount'].' dom';
-					}
-					elseif($term->options['domain_amount']>0){
-						
-						$this->parent->admin->html .= '+'.$term->options['domain_amount'].' doms';
-					}	
-					else{
-						
-						$this->parent->admin->html .= $term->options['domain_amount'].' doms';
-					}
+					$this->parent->admin->html .= '+'.$term->options['domain_amount'].' dom';
+				}
+				elseif($term->options['domain_amount']>0){
 					
-					$this->parent->admin->html .= ' / ';
+					$this->parent->admin->html .= '+'.$term->options['domain_amount'].' doms';
+				}	
+				else{
+					
+					$this->parent->admin->html .= $term->options['domain_amount'].' doms';
+				}
+				
+				$this->parent->admin->html .= ' / ';
 
-					if($term->options['subdomain_amount']==1){
-						
-						$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' sub';
-					}
-					elseif($term->options['subdomain_amount']>0){
-						
-						$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' subs';
-					}	
-					else{
-						
-						$this->parent->admin->html .= $term->options['subdomain_amount'].' subs';
-					}						
-			
-				$this->parent->admin->html .= '</span>';
-			}
+				if($term->options['subdomain_amount']==1){
+					
+					$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' sub';
+				}
+				elseif($term->options['subdomain_amount']>0){
+					
+					$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' subs';
+				}	
+				else{
+					
+					$this->parent->admin->html .= $term->options['subdomain_amount'].' subs';
+				}						
+		
+			$this->parent->admin->html .= '</span>';
 		
 		$this->parent->admin->html .= '</td>';
 	}	
 	
 	public function sum_domain_amount( &$total_domain_amount=0, $options){
 		
-		$total_domain_amount = $total_domain_amount + $options['domain_amount'];
+		if( isset($options['domain_amount']) ){
+			
+			$total_domain_amount = $total_domain_amount + $options['domain_amount'];
+		}
 		
 		return $total_domain_amount;
 	}
 	
 	public function sum_subdomain_amount( &$total_subdomain_amount=0, $options){
 		
-		$total_subdomain_amount = $total_subdomain_amount + $options['subdomain_amount'];
+		if( isset($options['subdomain_amount']) ){
+		
+			$total_subdomain_amount = $total_subdomain_amount + $options['subdomain_amount'];
+		}
 		
 		return $total_subdomain_amount;
 	}
@@ -745,57 +932,73 @@ class LTPLE_Domains {
 		$this->parent->admin->html .= '</td>';		
 	}
 	
-	public function add_plan_shortcode_attributes($taxonomies,$plan_options){
+	public function get_subscription_plan_info($plan,$options){
 		
-		$total_domain_amount 	= 0;
-		$total_subdomain_amount = 0;	
+		$plan['info']['total_domain_amount'] 	= $this->sum_domain_amount( $plan['info']['total_domain_amount'], $options );
+		$plan['info']['total_subdomain_amount'] = $this->sum_subdomain_amount( $plan['info']['total_subdomain_amount'], $options );
+		
+		return $plan;
+	}
 	
-		foreach ( $taxonomies as $taxonomy => $terms ) {
-	
-			foreach($terms as $term){
-
-				if ( in_array( $term->slug, $plan_options ) ) {
-					
-					$total_domain_amount 	= $this->sum_domain_amount( $total_domain_amount, $term->options);
-					$total_subdomain_amount = $this->sum_subdomain_amount( $total_subdomain_amount, $term->options);
-				}
-			}
-		}
+	public function add_plan_table_attributes($table,$plan){
+		
+		$total_domain_amount 	= $plan['info']['total_domain_amount'];
+		$total_subdomain_amount = $plan['info']['total_subdomain_amount'];
 		
 		if( $total_domain_amount > 0 || $total_subdomain_amount > 0 ){
 			
-			$this->parent->plan->shortcode .= '<div id="plan_domains" style="display:block;">';
+			$md5 = md5(rand());
+			
+			$table .='<a data-toggle="collapse" data-target="#section_'.$md5.'" class="plan_section">Domain Name <i class="glyphicon glyphicon-chevron-down pull-right"></i></a>';
+			
+			$table .= '<div id="section_'.$md5.'" class="panel-collapse collapse">';
 				
-				if( $total_domain_amount > 0 ){
-				
-					if( $total_domain_amount == 1 ){
-						
-						$this->parent->plan->shortcode .= '+'.$total_domain_amount.' connected domain';
-					}								
-					else{
-						
-						$this->parent->plan->shortcode .= '+'.$total_domain_amount.' connected domains';
-					}
-					
-					$this->parent->plan->shortcode .= '<br/>';
-				}
-				
-				if( $total_subdomain_amount > 0 ){
-				
-					if( $total_subdomain_amount == 1 ){
-						
-						$this->parent->plan->shortcode .= '+'.$total_subdomain_amount.' subdomain';
-					}								
-					else{
-						
-						$this->parent->plan->shortcode .= '+'.$total_subdomain_amount.' subdomains';
-					}
-					
-					$this->parent->plan->shortcode .= '<br/>';
-				}
+				$table .= '<table id="plan_domains" class="able-striped">';
 
-			$this->parent->plan->shortcode .= '</div>';
+					if( $total_domain_amount > 0 ){
+					
+						$table .= '<tr>';
+					
+							$table .= '<td>';	
+							
+								$table .= 'Connected domains';
+							
+							$table .= '</td>';
+
+							$table .= '<td>';							
+					
+								$table .= '<span class="badge">+'.$total_domain_amount.'</span> connected domain' . ( $total_domain_amount > 1 ? 's' : '');
+								
+							$table .= '</td>';	
+						
+						$table .= '</tr>';
+					}
+					
+					if( $total_subdomain_amount > 0 ){
+					
+						$table .= '<tr>';
+					
+							$table .= '<td>';	
+							
+								$table .= 'Subdomains';
+							
+							$table .= '</td>';
+
+							$table .= '<td>';							
+					
+								$table .= '<span class="badge">+'.$total_subdomain_amount.'</span> subdomain' . ( $total_subdomain_amount > 1 ? 's' : '');
+								
+							$table .= '</td>';	
+						
+						$table .= '</tr>';
+					}
+
+				$table .= '</table>';
+				
+			$table .= '</div>';
 		}
+		
+		return $table;
 	}
 		
 	public function handle_subscription_plan(){
@@ -892,8 +1095,9 @@ class LTPLE_Domains {
 	 */
 	public function admin_enqueue_styles ( $hook = '' ) {
 		
-		wp_register_style( $this->_token . '-admin', esc_url( $this->assets_url ) . 'css/admin.css', array(), $this->_version );
-		wp_enqueue_style( $this->_token . '-admin' );
+		//wp_register_style( $this->_token . '-admin', esc_url( $this->assets_url ) . 'css/admin.css', array(), $this->_version );
+		//wp_enqueue_style( $this->_token . '-admin' );
+		
 	} // End admin_enqueue_styles ()
 
 	/**

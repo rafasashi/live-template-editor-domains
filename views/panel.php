@@ -6,6 +6,14 @@
 	
 		echo $this->parent->message;
 	}
+	
+	
+	if(!empty($_SESSION['message'])){
+		
+		echo $_SESSION['message'].PHP_EOL;
+		
+		$_SESSION['message'] = '';
+	}	
 
 	// get current tab
 	
@@ -17,21 +25,9 @@
 	
 	echo'<div id="panel" class="wrapper">';
 
-		echo '<div id="sidebar">';
-		
-			echo'<ul class="nav nav-tabs tabs-left">';
-				
-				echo'<li class="gallery_type_title">Domains & URLs</li>';
-				
-				echo'<li'.( $currentTab == 'default' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '">My domains <span class="label label-success pull-right"> pro </span></a></li>';
-
-				echo'<li'.( $currentTab == 'urls' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '?tab=urls">Urls & Pages <span class="label label-success pull-right"> pro </span></a></li>';
-				
-			echo'</ul>';
-			
-		echo'</div>';
-
-		echo'<div id="content" class="library-content" style="border-left: 1px solid #ddd;background:#fff;padding-bottom:15px;;min-height:700px;">';
+		echo $this->parent->dashboard->get_sidebar($currentTab);
+	
+		echo'<div id="content" class="library-content" style="border-left:1px solid #ddd;background:#fbfbfb;padding-bottom:15px;min-height:700px;">';
 			
 			echo'<div class="tab-content">';
 
@@ -222,6 +218,8 @@
 									echo'</table>';	
 
 								}
+								
+								echo '<a href="' . $this->parent->urls->domains . '?tab=urls">URLs & Pages</a>';
 									
 								echo'</div>';		
 							}
@@ -283,7 +281,7 @@
 												echo'</td>';
 
 												echo'<td style="width:560px;">';
-												
+													
 													echo'<form action="' . $this->parent->urls->current . '" method="post">';
 												
 														echo'<input type="hidden" name="layerId" value="' . $layer->ID . '" />';
@@ -302,7 +300,7 @@
 																	
 																	foreach( $domains as $domain ){
 																	
-																		if(isset($domain->domainUrls[$layer->ID])){
+																		if(isset($domain->urls[$layer->ID])){
 																			
 																			$domainName = $domain->post_title;
 																		}																
@@ -343,14 +341,7 @@
 												
 												echo'<td style="width:50px;">';
 												
-													if( !empty($domainName) ){
-														
-														$domainUrl = 'http://'.$domainName.'/'.$domainPath;
-													}
-													else{
-														
-														$domainUrl = get_permalink($layer->ID);
-													}
+													$domainUrl = get_permalink($layer->ID);
 
 													echo '<a href="' . $domainUrl . '" target="_blank" class="btn btn-success btn-sm" style="margin-left: 4px;border-color: #9c6433;color: #fff;background-color: rgb(189, 120, 61);">';
 													

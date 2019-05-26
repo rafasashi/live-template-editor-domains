@@ -370,7 +370,7 @@
 				<div class="back-info">
 					<h3>About me</h3>
 					<p><?php echo $description; ?></p>
-					<a href="<?php echo $this->parent->urls->profile . $this->currentDomain->post_author . '/'; ?>">My profile</a>
+					<a href="<?php echo REW_PRIMARY_SITE . '/' . $this->parent->profile->slug . '/' . $this->currentDomain->post_author . '/'; ?>">My profile</a>
 				</div>
 				<div id="social-bar">
 				

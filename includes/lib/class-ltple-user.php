@@ -21,6 +21,8 @@ class LTPLE_Domains_User {
 			$this->save_domain();
 			
 			$this->save_urls();
+			
+			$this->edit_layer_url();
 		}
 	}
 	
@@ -125,6 +127,68 @@ class LTPLE_Domains_User {
 		}
 	}
 	
+	public function edit_layer_url(){
+		
+		// update urls
+		
+		if( !empty($this->parent->user->layer) && !empty($_POST['postAction']) && $_POST['postAction'] == 'edit' && isset($_POST['domainUrl']['domainId']) && isset($_POST['domainUrl']['domainPath']) ){
+			
+			$domainId 	= floatval($_POST['domainUrl']['domainId']);
+			
+			$domainPath = sanitize_text_field($_POST['domainUrl']['domainPath']);
+			
+			if( is_numeric($domainId) ){
+				
+				foreach( $this->list as $domain_type => $domains ){
+					
+					foreach( $domains as $domain ){
+						
+						if( $domainId == $domain->ID ){
+							
+							if( !empty($domain->urls) && in_array( $domainPath, $domain->urls) ){
+								
+								// unset previous url
+								
+								foreach($domain->urls as $id => $path){
+									
+									if( $path == $domainPath ){
+										
+										unset($domain->urls[$id]);
+									}
+								}
+							}
+							
+							// update domain url
+
+							$domain->urls[$this->parent->user->layer->ID] = $domainPath;
+						
+							update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
+						}
+						elseif( $domainId == -1 && isset($domain->urls[$this->parent->user->layer->ID]) ){
+							
+							// unset domain url
+							
+							unset($domain->urls[$this->parent->user->layer->ID]);
+							
+							update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
+						}
+					}
+				}
+				
+				if( $domainId == -1 && !empty($domainPath) ){
+					
+					// update post slug
+					
+					wp_update_post( array(
+					
+						'ID' 		=> $this->parent->user->layer->ID,
+						'post_name'	=> $domainPath,
+					));
+				}
+			}
+		}		
+	}
+	
 	public function save_urls(){
 
 		if( !is_admin() && !empty($_POST) ){
@@ -163,7 +227,7 @@ class LTPLE_Domains_User {
 									// update domain url
 
 									$domain->urls[$layerId] = $domainPath;
-								
+									
 									update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
 
 									// output message
@@ -174,18 +238,36 @@ class LTPLE_Domains_User {
 										
 									$this->parent->message .= '</div>';
 								}
-								/*
-								elseif( isset($domain->domainUrls[$layerId]) ){
+								elseif( $domainId == -1 && isset($domain->urls[$layerId]) ){
+								
+									// unset domain url
+								
+									unset($domain->urls[$layerId]);
+								
+									update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
+								
+									// output message
 									
-									// update previous domain
+									$this->parent->message .= '<div class="alert alert-success">';
 									
-									unset($domain->domainUrls[$layerId]);
-									
-									update_post_meta( $domain->ID, 'domainUrls', $domain->domainUrls );
+										$this->parent->message .= 'Url successfully removed...';
+										
+									$this->parent->message .= '</div>';								
 								}
-								*/
 							}
 						}
+						/*
+						if( $domainId == -1 && !empty($domainPath) ){
+							
+							// update post slug
+							
+							wp_update_post( array(
+							
+								'ID' 		=> $layerId,
+								'post_name'	=> $domainPath,
+							));
+						}
+						*/
 					}
 				}
 			}
