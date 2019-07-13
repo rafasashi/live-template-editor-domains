@@ -26,18 +26,65 @@ class LTPLE_Domains_User {
 		}
 	}
 	
-	public function get_user_plan_domains(){
+	public function get_total_plan_domains(){
 		
 		$user_plan = $this->parent->plan->get_user_plan_info($this->parent->user->ID);
 		
-		return $user_plan['info']['total_domain_amount'];
+		$total_domain_amount = isset( $user_plan['info']['total_domain_amount'] ) ? $user_plan['info']['total_domain_amount'] : 0;
+		
+		return $total_domain_amount;
+	}
+
+	public function get_license_holder_domain_list($filter=''){
+		
+		$domain_list = array(
+			
+			'subdomain' => array(),
+			'domain' 	=> array(),
+		);
+		
+		$user_plan = $this->parent->plan->get_user_plan_info($this->parent->user->ID);
+	
+		if( !empty($user_plan['holder']) ){
+			
+			$users = $this->parent->plan->get_license_users($user_plan['holder']);
+			
+			foreach( $users as $user_id ){
+				
+				$user_list = $this->parent->domains->get_user_domain_list( $user_id );
+			
+				if( !empty($user_list['subdomain']) ){
+					
+					$domain_list['subdomain'] = array_merge($domain_list['subdomain'],$user_list['subdomain']);
+				}
+				
+				if( !empty($user_list['domain']) ){
+					
+					$domain_list['domain'] = array_merge($domain_list['domain'],$user_list['domain']);
+				}
+			}
+		}
+		
+		if( !empty($filter) ){
+			
+			if( isset($domain_list[$filter]) ){
+				
+				return $domain_list[$filter];
+			}
+			
+			return array();
+		}
+		
+		return $domain_list;
 	}	
 	
-	public function get_user_plan_subdomains(){
+	public function get_total_plan_subdomains(){
 		
 		$user_plan = $this->parent->plan->get_user_plan_info($this->parent->user->ID);
+				
+		$total_subdomain_amount = isset( $user_plan['info']['total_subdomain_amount'] ) ? $user_plan['info']['total_subdomain_amount'] : 0;
 		
-		return $user_plan['info']['total_subdomain_amount'];
+		return $total_subdomain_amount;
 	}
 	
 	public function save_domain(){
@@ -87,7 +134,7 @@ class LTPLE_Domains_User {
 				else{
 					
 					$user_subdomains 		= ( !empty($this->parent->user->domains->list['subdomain']) ? count($this->parent->user->domains->list['subdomain']) : 0 );
-					$user_plan_subdomains 	= $this->get_user_plan_subdomains();
+					$user_plan_subdomains 	= $this->get_total_plan_subdomains();
 
 					if( $user_plan_subdomains > $user_subdomains ){
 						

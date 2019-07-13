@@ -7,7 +7,6 @@
 		echo $this->parent->message;
 	}
 	
-	
 	if(!empty($_SESSION['message'])){
 		
 		echo $_SESSION['message'].PHP_EOL;
@@ -71,12 +70,12 @@
 												
 												if( $domain_type == 'subdomain' ){
 													
-													$user_subdomains 		= count($domains);
-													$user_plan_subdomains 	= $this->parent->user->domains->get_user_plan_subdomains();
+													$license_holder_subdomains 	= count($this->parent->user->domains->get_license_holder_domain_list('subdomain'));
+													$total_plan_subdomains 		= $this->parent->user->domains->get_total_plan_subdomains();
 													
 													echo'<span style="float:left;margin:3px 5px 0 0;display:inline-block;font-size:15px;font-weight:bold;">Subdomains</span>';
 													
-													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $user_subdomains . ' / ' . $user_plan_subdomains . '</span>';
+													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $license_holder_subdomains . ' / ' . $total_plan_subdomains . '</span>';
 													
 													$permalink = add_query_arg(array(
 														
@@ -108,7 +107,7 @@
 																
 																	if( $this->parent->user->remaining_days > 0 ) {
 																		
-																		if( $user_plan_subdomains > $user_subdomains ){
+																		if( $total_plan_subdomains > $license_holder_subdomains ){
 																			
 																			echo'<div class="loadingIframe" style="position:absolute;height:50px;width:100%;background-position:50% center;background-repeat: no-repeat;background-image:url(\'' . $this->parent->server->url . '/c/p/live-template-editor-server/assets/loader.gif\');"></div>';
 																			
@@ -134,12 +133,12 @@
 												}
 												elseif( $domain_type == 'domain' ){
 													
-													$user_domains 		= count($domains);
-													$user_plan_domains 	= $this->parent->user->domains->get_user_plan_domains();
+													$license_holder_domains = count($this->parent->user->domains->get_license_holder_domain_list('domain'));
+													$total_plan_domains 	= $this->parent->user->domains->get_total_plan_domains();
 																										
 													echo'<span style="float: left;margin: 3px 5px 0 0;display: inline-block;font-size: 15px;font-weight: bold;">Connected Domains</span>';
 													
-													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $user_domains . ' / ' . $user_plan_domains . '</span>';
+													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $license_holder_domains . ' / ' . $total_plan_domains . '</span>';
 													
 													$permalink = 'connect-domain';
 													
@@ -163,7 +162,7 @@
 															  
 																echo'<div class="modal-body">'.PHP_EOL;
 																	
-																	if( $user_plan_domains > $user_domains ){
+																	if( $total_plan_domains > $license_holder_domains ){
 																		
 																		echo'To connect an existing domain please contact the support team';											
 																	}
@@ -196,7 +195,7 @@
 												echo'<tr>';
 													echo'<td>';
 													
-														echo $domain->post_title;
+														echo '<a href="http://' . $domain->post_title . '" target="_blank">' . $domain->post_title . '</a>';
 													
 													echo'</td>';
 												echo'</tr>';
@@ -207,7 +206,7 @@
 											echo'<tr>';
 												echo'<td>';
 												
-													echo 'none';
+													echo 'no '.$domain_type.'s for this user';
 												
 												echo'</td>';
 											echo'</tr>';											

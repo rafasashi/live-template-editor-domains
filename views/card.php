@@ -1,5 +1,7 @@
 <?php 
 
+	$ltple = LTPLE_Client::instance();
+
 	ob_clean(); 
 	
 	// get site name
@@ -8,7 +10,7 @@
 	
 	// get site logo
 	
-	$site_logo = ( !empty($this->parent->settings->options->logo_url) ? $this->parent->settings->options->logo_url : $this->parent->assets_url . 'images/home.png' );
+	$site_logo = ( !empty($ltple->settings->options->logo_url) ? $ltple->settings->options->logo_url : $ltple->assets_url . 'images/home.png' );
 	
 	// get site icon
 	
@@ -16,23 +18,23 @@
 	
 	// get background
 	
-	$background_image = $this->parent->image->get_banner_url($this->currentDomain->post_author) . '?' . time();
+	$background_image = $ltple->image->get_banner_url($ltple->domains->currentDomain->post_author) . '?' . time();
 	
 	// get name
 	
-	$name = get_user_meta( $this->currentDomain->post_author , 'nickname', true );
+	$name = get_user_meta( $ltple->domains->currentDomain->post_author , 'nickname', true );
 	
 	// get profile picture
 	
-	$picture = $this->parent->image->get_avatar_url( $this->currentDomain->post_author );
+	$picture = $ltple->image->get_avatar_url( $ltple->domains->currentDomain->post_author );
 	
 	// get stars
 	
-	$stars = $this->parent->stars->get_count($this->currentDomain->post_author);
+	$stars = $ltple->stars->get_count($ltple->domains->currentDomain->post_author);
 	
 	// get description
 	
-	$description = wp_trim_words(get_user_meta($this->currentDomain->post_author, 'description', true),50,' [...]');
+	$description = wp_trim_words(get_user_meta($ltple->domains->currentDomain->post_author, 'description', true),50,' [...]');
 
 	if( empty($description) ){
 		
@@ -46,7 +48,7 @@
 	$locale = get_locale();
 	$robots = 'index,follow';
 	
-	$canonical_url = $this->parent->urls->home;
+	$canonical_url = $ltple->urls->home;
 ?>
 <!DOCTYPE html>
 <html>
@@ -57,6 +59,8 @@
 		<link rel="shortcut icon" type="image/jpeg" href="<?php echo $site_icon; ?>" />
 		
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		
 		<meta name="subject" content="<?php echo $title; ?>" />
 		<meta property="og:title" content="<?php echo $title; ?>" />
@@ -105,7 +109,7 @@
 			}
 
 			html, body {
-			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $this->parent->settings->mainColor; ?>63);
+			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $ltple->settings->mainColor; ?>63);
 			  height: 100%;
 			  margin: 0;
 			  overflow: hidden;
@@ -120,7 +124,7 @@
 			}
 			html h2, body h2 {
 				font-size: 16px;
-				color: <?php echo $this->parent->settings->mainColor; ?>;
+				color: <?php echo $ltple->settings->mainColor; ?>;
 				background: #fff;
 				display: inline;
 				padding: 3px 11px;
@@ -191,7 +195,7 @@
 			  height: 50%;
 			  width: 100%;
 			  background-image: url(<?php echo $background_image; ?>);
-			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $this->parent->settings->mainColor; ?>63), url(<?php echo $background_image; ?>);
+			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $ltple->settings->mainColor; ?>63), url(<?php echo $background_image; ?>);
 			  background-size: cover;
 			  background-position: center center;
 			}
@@ -215,8 +219,8 @@
 			  display: table;
 			  left: 0;
 			  bottom: 0;
-			  background: <?php echo $this->parent->settings->mainColor; ?>cc;
-			  padding: 50px;
+			  background: <?php echo $ltple->settings->mainColor; ?>cc;
+			  padding: 50px 0px;
 			}
 			#card #front #social-bar {
 			  height: 50px;
@@ -257,7 +261,7 @@
 			}
 			#card #back .back-info a {
 				
-				color:<?php echo $this->parent->settings->mainColor; ?>;
+				color:<?php echo $ltple->settings->mainColor; ?>;
 			}
 			#card #back #social-bar {
 			  height: 50px;
@@ -272,7 +276,7 @@
 			#card #back #social-bar a {
 			  display: inline-block;
 			  line-height: 18px;
-			  color: <?php echo $this->parent->settings->mainColor; ?>;
+			  color: <?php echo $ltple->settings->mainColor; ?>;
 			  text-decoration: none;
 			  padding: 5px;
 			  border-radius: 5px;
@@ -311,7 +315,7 @@
 			  left: -30px;
 			  -webkit-filter: blur(10px);
 			  background-image: url(<?php echo $background_image; ?>);
-			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $this->parent->settings->mainColor; ?>63), url(<?php echo $background_image; ?>);
+			  background-image: linear-gradient(to bottom right,#284d6bdb,<?php echo $ltple->settings->mainColor; ?>63), url(<?php echo $background_image; ?>);
 			  background-size: cover;
 			  background-position: center;
 			}
@@ -370,7 +374,7 @@
 				<div class="back-info">
 					<h3>About me</h3>
 					<p><?php echo $description; ?></p>
-					<a href="<?php echo REW_PRIMARY_SITE . '/' . $this->parent->profile->slug . '/' . $this->currentDomain->post_author . '/'; ?>">My profile</a>
+					<a href="<?php echo REW_PRIMARY_SITE . '/' . $ltple->profile->slug . '/' . $ltple->domains->currentDomain->post_author . '/'; ?>">My profile</a>
 				</div>
 				<div id="social-bar">
 				
