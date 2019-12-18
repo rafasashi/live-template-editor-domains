@@ -138,7 +138,7 @@ class LTPLE_Domains {
 		add_filter( 'ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
 		add_filter( 'ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
 		
-		add_filter( 'ltple_dashboard_connect_sidebar', array( $this, 'get_sidebar_content' ),2,3);
+		add_filter( 'ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
 			 
 		add_action( 'ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
 			 
@@ -424,7 +424,7 @@ class LTPLE_Domains {
 			$domain_name = defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'];
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
-
+				
 				// get request uri
 				
 				list($this->uri) = explode('?', $_SERVER['REQUEST_URI']);
@@ -445,9 +445,11 @@ class LTPLE_Domains {
 								
 								$this->set_user_layer($layerId);
 							}
-							else{
+							elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
 								
-								//echo 'License expired, please contact the support team.';
+								echo 'License expired, please renew your subscription.';
+							}
+							else{
 
 								include($this->views . '/card.php');
 							}
@@ -754,10 +756,8 @@ class LTPLE_Domains {
 	
 	public function get_edit_layer_url(){
 		
-		if( $this->parent->layer->is_hosted($this->parent->user->layer) ){
+		if( $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
 		
-			//$post_type = get_post_type_object( $this->parent->user->layer->post_type );
-			
 			echo'<hr>';
 			
 			echo'<label style="margin:0 11px 0 7px;">URL</label>';
@@ -830,7 +830,7 @@ class LTPLE_Domains {
 			else{
 
 				echo '<i>Select "Public" status </i>';
-			}	
+			}
 		}
 	}
 	
