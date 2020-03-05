@@ -218,7 +218,7 @@
 
 								}
 								
-								echo '<a href="' . $this->parent->urls->domains . '?tab=urls">URLs & Pages</a>';
+								//echo '<a href="' . $this->parent->urls->domains . '?tab=urls">URLs & Pages</a>';
 									
 								echo'</div>';		
 							}

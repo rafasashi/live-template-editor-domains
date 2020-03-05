@@ -317,8 +317,13 @@ class LTPLE_Domains {
 					$post_link = $domainUrl;
 				}
 				else{
-			
-					$post_link = $this->parent->urls->home . '?t='  . $post->ID;
+					
+					$post_link = add_query_arg(array( 
+					
+						'post_type' => $post->post_type,
+						'p' 		=> $post->ID,
+					
+					),$post_link);
 				}
 			}
 			else{
@@ -333,10 +338,6 @@ class LTPLE_Domains {
 					}
 				}
 			}
-		}
-		else{
-			
-			$post_link = $this->parent->urls->home . '?t='  . $post->ID;
 		}
 					
 		return $post_link;
@@ -439,22 +440,25 @@ class LTPLE_Domains {
 						
 						if( '/' . $path == $this->uri ){
 							
-							// check license
-							
-							if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
+							if( $layer = get_post($layerId) ){
 								
-								$this->set_user_layer($layerId);
-							}
-							elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
+								// check license
 								
-								echo 'License expired, please renew your subscription.';
-							}
-							else{
+								if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
+									
+									$this->set_user_layer($layer);
+								}
+								elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
+									
+									echo 'License expired, please renew your subscription.';
+								}
+								else{
 
-								include($this->views . '/card.php');
+									include($this->views . '/card.php');
+								}
+								
+								exit;
 							}
-							
-							exit;
 						}
 					}
 					
@@ -535,9 +539,7 @@ class LTPLE_Domains {
 		},99999);
 	}
 	
-	public function set_user_layer($layerId){
-
-		$layer = get_post($layerId);
+	public function set_user_layer($layer){
 		
 		if( !empty($layer) && $layer->post_status == 'publish' ){
 			
@@ -890,14 +892,14 @@ class LTPLE_Domains {
 		return $completeness;
 	}	
 
-	public function add_account_options($term_slug){
+	public function add_account_options($term_id){
 		
-		if(!$domain_amount = get_option('domain_amount_' . $term_slug)){
+		if(!$domain_amount = $this->parent->layer->get_plan_amount($term_id,'domain')){
 			
 			$domain_amount = 0;
 		}
 		
-		if(!$subdomain_amount = get_option('subdomain_amount_' . $term_slug)){
+		if(!$subdomain_amount = $this->parent->layer->get_plan_amount($term_id,'subdomain')){
 			
 			$subdomain_amount = 0;
 		}
@@ -906,14 +908,14 @@ class LTPLE_Domains {
 		$this->parent->layer->options['subdomain_amount'] 	= $subdomain_amount;
 	}
 	
-	public function add_layer_plan_fields( $taxonomy, $term_slug = '' ){
+	public function add_layer_plan_fields( $taxonomy, $term_id ){
 		
 		$data = [];
 
-		if( !empty($term_slug) ){
+		if( !empty($term_id) ){
 			
-			$data['domain_amount'] 		= get_option('domain_amount_' . $term_slug); 
-			$data['subdomain_amount'] 	= get_option('subdomain_amount_' . $term_slug); 
+			$data['domain_amount'] 		= $this->parent->layer->get_plan_amount($term_id,'domain'); 
+			$data['subdomain_amount'] 	= $this->parent->layer->get_plan_amount($term_id,'subdomain'); 
 		}
 		
 		echo'<div class="form-field" style="margin-bottom:15px;">';
@@ -992,13 +994,13 @@ class LTPLE_Domains {
 	public function save_layer_fields($term){
 		
 		if( isset($_POST[$term->taxonomy .'-domain-amount']) && is_numeric($_POST[$term->taxonomy .'-domain-amount']) ){
-
-			update_option('domain_amount_' . $term->slug, round(intval(sanitize_text_field($_POST[$term->taxonomy . '-domain-amount'])),1));			
+			
+			$this->parent->layer->update_plan_amount($term->term_id,'domain',round(intval(sanitize_text_field($_POST[$term->taxonomy . '-domain-amount'])),1));			
 		}			
 		
 		if( isset($_POST[$term->taxonomy .'-subdomain-amount']) && is_numeric($_POST[$term->taxonomy .'-subdomain-amount']) ){
 			
-			update_option('subdomain_amount_' . $term->slug, round(intval(sanitize_text_field($_POST[$term->taxonomy . '-subdomain-amount'])),1));			
+			$this->parent->layer->update_plan_amount($term->term_id,'subdomain',round(intval(sanitize_text_field($_POST[$term->taxonomy . '-subdomain-amount'])),1));			
 		}		
 	}
 	
@@ -1013,7 +1015,7 @@ class LTPLE_Domains {
 			
 			// display domain amount
 			
-			if(!$domain_amount = get_option('domain_amount_' . $term->slug)){
+			if(!$domain_amount = $this->parent->layer->get_plan_amount($term->term_id,'domain')){
 				
 				$domain_amount = 0;
 			}
@@ -1033,7 +1035,7 @@ class LTPLE_Domains {
 			
 			// display subdomain amount
 			
-			if(!$subdomain_amount = get_option('subdomain_amount_' . $term->slug)){
+			if(!$subdomain_amount = $this->parent->layer->get_plan_amount($term->term_id,'subdomain')){
 				
 				$subdomain_amount = 0;
 			}			
