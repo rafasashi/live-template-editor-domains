@@ -523,12 +523,20 @@ class LTPLE_Domains {
 						}
 					}
 					
+					$args = array();
+					
 					if( !empty($_SERVER['QUERY_STRING']) ){
+						
+						parse_str($_SERVER['QUERY_STRING'],$args);
 						
 						$url .= '?' . $_SERVER['QUERY_STRING'];
 					}
 					
-					if( $url != $this->parent->urls->current ){
+					if( !empty($args['preview']) && $args['preview'] == 'ltple' ){
+						
+						//skip redirection
+					}
+					elseif( $url != $this->parent->urls->current ){
 
 						wp_redirect($url);
 						exit;
