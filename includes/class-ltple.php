@@ -45,7 +45,7 @@ class LTPLE_Domains {
 		$this->views   		= trailingslashit( $this->dir ) . 'views';
 		$this->vendor  		= WP_CONTENT_DIR . '/vendor';
 		$this->assets_dir 	= trailingslashit( $this->dir ) . 'assets';
-		$this->assets_url 	= esc_url( trailingslashit( plugins_url( '/assets/', $this->file ) ) );
+		$this->assets_url 	= home_url( trailingslashit( str_replace( ABSPATH, '', $this->dir ))  . 'assets/' );
 		
 		//$this->script_suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		$this->script_suffix = '';
@@ -168,6 +168,8 @@ class LTPLE_Domains {
 		));
 		
 		add_filter('post_type_link', array( $this, 'get_permalink'),1,2);
+		
+		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 	} // End __construct ()
 	
@@ -343,6 +345,21 @@ class LTPLE_Domains {
 		return $post_link;
 	}
 	
+	public function get_editor_preview_url($preview_url,$post_id){
+		
+		$u = parse_url($preview_url);
+		
+		if( !empty($u['host']) && $_SERVER['HTTP_HOST'] != $u['host'] ){
+			
+			if( $domain = $this->get_domain($u['host']) ){
+				
+				$preview_url = $this->parent->urls->profile . $domain->post_author . $u['path'] . '?' . $u['query'] . '&domain=' . $u['host'];
+			}
+		}
+		
+		return $preview_url;
+	}
+	
 	public function get_domain_permalink($post){
 		
 		$domainUrl 	= null;
@@ -418,71 +435,104 @@ class LTPLE_Domains {
 	
 	public function init(){	
 		
-		if( defined('REW_LTPLE') && in_array(REW_LTPLE,['domain','subdomain']) ){
+		// get domain	
+		
+		$domain_name = false;
+		
+		if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' && !empty($_GET['domain']) ){
 			
-			// get domain
-			
+			$domain_name = $_GET['domain'];
+		}
+		elseif( defined('REW_LTPLE') && in_array(REW_LTPLE,['domain','subdomain']) ){
+
 			$domain_name = defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'];
+		}
+		
+		if( !empty($domain_name) ){
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
 				
 				// get request uri
-				
-				list($this->uri) = explode('?', $_SERVER['REQUEST_URI']);
-									
-				// get urls
-				
-				if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
-					
-					// get path
 
-					foreach( $this->currentDomain->urls as $layerId => $path ){
-						
-						if( '/' . $path == $this->uri ){
-							
-							if( $layer = get_post($layerId) ){
-								
-								// check license
-								
-								if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
-									
-									$this->set_user_layer($layer);
-								}
-								elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
-									
-									echo 'License expired, please renew your subscription.';
-								}
-								else{
-
-									include($this->views . '/card.php');
-								}
-								
-								exit;
-							}
-						}
-					}
+				$request_uri = false;
+				
+				if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' ){
 					
-					if( $this->currentDomain->is_primary === true ){
-						
-						$this->set_user_profile();
-					}
-					else{
-						
-						include($this->views . '/card.php');
-					}
-				}
-				elseif( $this->currentDomain->is_primary === true ){
+					$prefix = '/' . $this->parent->profile->slug . '/' . $this->currentDomain->post_author;
 					
-					$this->set_user_profile();
-				}
-				elseif( !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/' ){
+					if( strpos($_SERVER['REQUEST_URI'],$prefix) === 0 ){
 					
-					wp_redirect($this->parent->urls->home);
-					exit;
+						$request_uri = str_replace( $prefix, '' , $_SERVER['REQUEST_URI'] );
+					}
 				}
 				else{
 					
-					include($this->views . '/card.php');					
+					$request_uri = $_SERVER['REQUEST_URI'];
+				}
+				
+				if( is_string($request_uri) ){
+					
+					list($this->uri) = explode('?', $request_uri);
+										
+					// get urls
+					
+					if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
+						
+						// get path
+						
+						foreach( $this->currentDomain->urls as $layerId => $path ){
+							
+							if( '/' . $path == $this->uri ){
+								
+								if( $layer = get_post($layerId) ){
+									
+									// check license
+									
+									if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
+										
+										$this->set_user_layer($layer);
+									}
+									elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
+										
+										echo 'License expired, please renew your subscription.';
+									}
+									else{
+
+										include($this->views . '/card.php');
+									}
+									
+									exit;
+								}
+							}
+						}
+						
+						if( $this->currentDomain->is_primary === true ){
+							
+							$this->set_user_profile();
+						}
+						else{
+							
+							include($this->views . '/card.php');
+						}
+					}
+					elseif( $this->currentDomain->is_primary === true ){
+						
+						$this->set_user_profile();
+					}
+					elseif( !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/' ){
+						
+						wp_redirect($this->parent->urls->home);
+						exit;
+					}
+					else{
+						
+						include($this->views . '/card.php');					
+					}
+				}
+				else{
+					
+					echo 'Wrong domain request uri...';
+					exit;					
 				}
 			}
 			else{

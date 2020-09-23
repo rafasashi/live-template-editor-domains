@@ -1,12 +1,10 @@
 <?php 
 
-$theme = LTPLE_Theme::instance();
+include_once( get_template_directory() . '/header.php' );
 
-include_once( $theme->dir . '/header.php' );
+include_once( get_template_directory() . '/navbar-profile.php' );
 
 ?>
-	
-	<?php include_once( $theme->dir . '/navbar-profile.php' );	?>
 		
 	<main id="main" class="site-main" role="main" style="min-height:600px;">
 
@@ -18,4 +16,6 @@ include_once( $theme->dir . '/header.php' );
 
 	</main><!-- #main -->
 	
-<?php include_once( $theme->dir . '/footer.php' );	?>
+<?php 
+
+include_once( get_template_directory() . '/footer.php' );
