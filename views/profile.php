@@ -6,7 +6,7 @@ include_once( get_template_directory() . '/navbar-profile.php' );
 
 ?>
 		
-	<main id="main" class="site-main" role="main" style="min-height:600px;">
+	<main id="main" class="site-main ltple-domains" role="main">
 
 		<?php 
 		
