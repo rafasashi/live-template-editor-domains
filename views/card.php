@@ -154,7 +154,8 @@
 				top: 25px;				
 			}
 			#logo img{
-				width: 100px;				
+				height:50px;	
+				width:auto;
 			}
 			#card {
 			  height: 400px;
