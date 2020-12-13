@@ -497,7 +497,7 @@ class LTPLE_Domains {
 										echo 'License expired, please renew your subscription.';
 									}
 									else{
-
+										
 										include($this->views . '/card.php');
 									}
 									
@@ -563,7 +563,7 @@ class LTPLE_Domains {
 						$url = $primary_domain . '/';
 					}
 					
-					if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'about-me' ){
+					if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
 						
 						$url .= $this->parent->profile->tab . '/';
 						
