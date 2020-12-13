@@ -372,9 +372,9 @@
 			  </div>
 			  <div id="back">
 				<div class="back-info">
-					<h3>About me</h3>
+					<h3>About</h3>
 					<p><?php echo $description; ?></p>
-					<a href="<?php echo REW_PRIMARY_SITE . '/' . $ltple->profile->slug . '/' . $ltple->domains->currentDomain->post_author . '/'; ?>">My profile</a>
+					<a href="<?php echo $ltple->profile->url . '/about/'; ?>">Read More</a>
 				</div>
 				<div id="social-bar">
 				

@@ -695,11 +695,14 @@ class LTPLE_Domains {
 			
 			if( $tabs = $this->parent->profile->get_profile_tabs() ){
 				
-				foreach( $tabs as $tab ){
-					
-					if( $tab['slug'] == $this->parent->profile->tab ){
+				if( $this->parent->profile->tab != 'home' || !empty($tabs[0]['content']) ){
+				
+					foreach( $tabs as $tab ){
 						
-						return $this->views . '/profile.php';
+						if( $tab['slug'] == $this->parent->profile->tab ){
+							
+							return $this->views . '/profile.php';
+						}
 					}
 				}
 			}
