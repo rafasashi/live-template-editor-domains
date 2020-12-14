@@ -498,7 +498,7 @@ class LTPLE_Domains {
 									}
 									else{
 										
-										include($this->views . '/card.php');
+										include($this->parent->views . '/card.php');
 									}
 									
 									exit;
@@ -512,7 +512,7 @@ class LTPLE_Domains {
 						}
 						else{
 							
-							include($this->views . '/card.php');
+							include($this->parent->views . '/card.php');
 						}
 					}
 					elseif( $this->currentDomain->is_primary === true ){
@@ -526,7 +526,7 @@ class LTPLE_Domains {
 					}
 					else{
 						
-						include($this->views . '/card.php');					
+						include($this->parent->views . '/card.php');					
 					}
 				}
 				else{
@@ -649,7 +649,7 @@ class LTPLE_Domains {
 		}
 		else{
 			
-			include($this->views . '/card.php');
+			include($this->parent->views . '/card.php');
 		}
 	}
 	
@@ -707,7 +707,7 @@ class LTPLE_Domains {
 				}
 			}
 			
-			return $this->views . '/card.php';
+			return $this->parent->views . '/card.php';
 			
 		},999999);		
 	}
