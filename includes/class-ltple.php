@@ -141,7 +141,7 @@ class LTPLE_Domains {
 		add_filter( 'ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
 			 
 		add_action( 'ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
-			 
+			
 		$this->add_star_triggers();
 		
 		// addon post types
@@ -500,7 +500,7 @@ class LTPLE_Domains {
 										
 										include($this->parent->views . '/card.php');
 									}
-									
+
 									exit;
 								}
 							}
@@ -686,28 +686,42 @@ class LTPLE_Domains {
 		add_filter('ltple_profile_url', function($url){
 			
 			$url = $this->parent->request->proto . $this->currentDomain->post_title;
-			
+
 			return $url;
 			
 		},99999);
 
-		add_action( 'template_include', function($path){
+		add_action( 'template_include', function($template){
 			
-			if( $tabs = $this->parent->profile->get_profile_tabs() ){
+			if( $this->parent->profile->id > 0 ){
 				
-				if( $this->parent->profile->tab != 'home' || !empty($tabs[0]['content']) ){
-				
-					foreach( $tabs as $tab ){
+				if( $this->parent->profile->in_tab ){
+					
+					if( $this->parent->profile->tab != 'home' || !empty($tabs['home']['content']) ){
 						
-						if( $tab['slug'] == $this->parent->profile->tab ){
+						foreach( $this->parent->profile->tabs as $tab ){
 							
-							return $this->views . '/profile.php';
+							if( $tab['slug'] == $this->parent->profile->tab ){
+								
+								return $this->views . '/profile.php';
+							}
 						}
 					}
 				}
+				elseif( $this->parent->user->loggedin && $this->parent->user->ID == $this->parent->profile->id  ){
+					
+					return $this->views . '/dashboard.php';
+				}
+				else{
+					
+					// redirect to primary site
+						
+					wp_redirect($this->parent->urls->primary . $this->uri);
+					exit;
+				}
 			}
 			
-			return $this->parent->views . '/card.php';
+			return $template;
 			
 		},999999);		
 	}

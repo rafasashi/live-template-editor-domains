@@ -360,18 +360,6 @@
 
 												echo'</td>';											
 												
-												/*
-												echo'<td style="width:30px;">';
-												
-													echo '<a href="' . $this->parent->urls->edit .'?'. $_SERVER['QUERY_STRING'] . '&uri=' . $layer->ID . '&postAction=delete" target="_self" class="btn btn-danger btn-sm" style="font-weight: bold;">';
-													
-														echo 'x';
-													
-													echo '</a>';
-												
-												echo'</td>';
-												*/
-											
 											echo'</tr>';
 										}
 									}

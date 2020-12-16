@@ -1,8 +1,10 @@
 <?php 
 
-include_once( get_template_directory() . '/header.php' );
+$ltple = LTPLE_Client::instance();
 
-include_once( get_template_directory() . '/navbar-profile.php' );
+include_once( $ltple->views . '/profile/header.php' );
+
+include_once( $ltple->views . '/profile/navbar.php' );
 
 ?>
 		
@@ -18,4 +20,4 @@ include_once( get_template_directory() . '/navbar-profile.php' );
 	
 <?php 
 
-include_once( get_template_directory() . '/footer.php' );
+include_once( $ltple->views . '/profile/footer.php' );
