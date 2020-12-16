@@ -712,7 +712,7 @@ class LTPLE_Domains {
 					
 					return $this->views . '/dashboard.php';
 				}
-				else{
+				elseif( !$this->parent->inWidget ){
 					
 					// redirect to primary site
 						
