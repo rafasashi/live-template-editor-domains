@@ -715,8 +715,23 @@ class LTPLE_Domains {
 					global $post;
 					
 					if( strpos($post->post_content,'[ltple-client-') !== false ){
-					
-						return $this->views . '/dashboard.php';
+						
+						if( $this->parent->inWidget  ){
+							
+							// TODO widget view
+							
+							return $this->views . '/dashboard.php';
+						}
+						elseif( !$this->parent->user->loggedin  ){
+						
+							// TODO login view
+						
+							return $this->views . '/dashboard.php';
+						}
+						elseif( $this->parent->user->ID == $this->parent->profile->id ){
+							
+							return $this->views . '/dashboard.php';
+						}
 					}
 				}
 				
