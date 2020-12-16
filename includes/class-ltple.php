@@ -708,22 +708,49 @@ class LTPLE_Domains {
 						}
 					}
 				}
-				elseif( $this->parent->user->loggedin && $this->parent->user->ID == $this->parent->profile->id  ){
+				else{
 					
-					return $this->views . '/dashboard.php';
-				}
-				elseif( !$this->parent->inWidget ){
+					// detect ltple shortcode
 					
-					// redirect to primary site
-						
-					wp_redirect($this->parent->urls->primary . $this->uri);
-					exit;
+					global $post;
+					
+					if( strpos($post->post_content,'[ltple-client-') !== false ){
+					
+						return $this->views . '/dashboard.php';
+					}
 				}
+				
+				// redirect to primary site
+				
+				$url = $this->parent->urls->primary . $this->uri;
+				
+				if( !empty($_SERVER['QUERY_STRING']) ){
+					
+					$url .= '?' . $_SERVER['QUERY_STRING'];
+				}
+				
+				wp_redirect($url);
+				exit;				
 			}
 			
 			return $template;
 			
 		},999999);		
+	}
+	
+	public function is_white_label_tab(){
+		
+		global $post;
+		
+		$tabs = array(
+			
+			'dashboard',
+			'inbox',
+		);
+		
+		dump($post);
+		
+		return $tabs;
 	}
 	
 	public function get_social_icons(){
