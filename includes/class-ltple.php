@@ -285,6 +285,11 @@ class LTPLE_Domains {
 						
 						$primary_domain = $this->parent->request->proto . $domain->post_title;
 						
+						if( defined('REW_DEV_ENV') && REW_DEV_ENV === true ){
+							
+							$primary_domain = str_replace('.','--',untrailingslashit($primary_domain)) . '.' . REW_SERVER;
+						}
+						
 						break 2;
 					}
 				}
@@ -473,9 +478,9 @@ class LTPLE_Domains {
 				if( is_string($request_uri) ){
 					
 					list($this->uri) = explode('?', $request_uri);
-										
-					// get urls
 					
+					// get urls
+				
 					if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
 						
 						// get path
@@ -498,7 +503,7 @@ class LTPLE_Domains {
 									}
 									else{
 										
-										include($this->parent->views . '/card.php');
+										include($this->parent->views . '/profile/card.php');
 									}
 
 									exit;
@@ -512,7 +517,7 @@ class LTPLE_Domains {
 						}
 						else{
 							
-							include($this->parent->views . '/card.php');
+							include($this->parent->views . '/profile/card.php');
 						}
 					}
 					elseif( $this->currentDomain->is_primary === true ){
@@ -526,7 +531,7 @@ class LTPLE_Domains {
 					}
 					else{
 						
-						include($this->parent->views . '/card.php');					
+						include($this->parent->views . '/profile/card.php');					
 					}
 				}
 				else{
@@ -544,54 +549,64 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_profile_redirect', function(){
 			
-			if( $this->parent->profile->id > 0 ){
-				
-				// get primary domain
-				
-				$primary_domain = $this->get_primary_domain($this->parent->profile->id);
-				
-				// redirect profile url
+			// parse query string
+			
+			parse_str($_SERVER['QUERY_STRING'],$args);
+			
+			// is editor preview
 
-				if( $primary_domain != $this->parent->profile->url ){
-					
-					if( $primary_domain == $this->parent->urls->home ){
-						
-						$url = $this->parent->urls->profile . $this->parent->profile->id . '/';
-					}
-					else{
-						
-						$url = $primary_domain . '/';
-					}
-					
-					if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
-						
-						$url .= $this->parent->profile->tab . '/';
-						
-						if( !empty($this->parent->profile->tabSlug) ){
-							
-							$url .= $this->parent->profile->tabSlug . '/';
-						}
-					}
-					
-					$args = array();
-					
-					if( !empty($_SERVER['QUERY_STRING']) ){
-						
-						parse_str($_SERVER['QUERY_STRING'],$args);
-						
-						$url .= '?' . $_SERVER['QUERY_STRING'];
-					}
-					
-					if( !empty($args['preview']) && $args['preview'] == 'ltple' ){
-						
-						//skip redirection
-					}
-					elseif( $url != $this->parent->urls->current ){
+			if( !empty($args['preview']) && $args['preview'] == 'ltple' )
+			
+				return;
+				
+			// is not profile
+			
+			if( !$this->parent->profile->id > 0 )
+			
+				return;
+			
+			// get primary domain
+			
+			if( !$primary_domain = $this->get_primary_domain($this->parent->profile->id) )
+			
+				return;
+				
+			// is primary domain
+			
+			if( strpos($this->parent->urls->current,$primary_domain) === 0 )
+			
+				return;
+			
+			// redirect profile url
 
-						wp_redirect($url);
-						exit;
-					}
+			if( $primary_domain == $this->parent->urls->home ){
+				
+				$url = $this->parent->urls->profile . $this->parent->profile->id . '/';
+			}
+			else{
+				
+				$url = $primary_domain . '/';
+			}
+			
+			if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
+				
+				$url .= $this->parent->profile->tab . '/';
+				
+				if( !empty($this->parent->profile->tabSlug) ){
+					
+					$url .= $this->parent->profile->tabSlug . '/';
 				}
+			}
+			
+			if( !empty($_SERVER['QUERY_STRING']) ){
+
+				$url .= '?' . $_SERVER['QUERY_STRING'];
+			}
+
+			if( $url != $this->parent->urls->current ){
+
+				wp_redirect($url);
+				exit;
 			}
 			
 		},99999);
@@ -649,7 +664,7 @@ class LTPLE_Domains {
 		}
 		else{
 			
-			include($this->parent->views . '/card.php');
+			include($this->parent->views . '/profile/card.php');
 		}
 	}
 	
@@ -697,7 +712,7 @@ class LTPLE_Domains {
 				
 				if( $this->parent->profile->in_tab ){
 					
-					if( $this->parent->profile->tab != 'home' || !empty($tabs['home']['content']) ){
+					if( $this->parent->profile->tab != 'home' || !empty($this->parent->profile->tabs['home']['content']) ){
 						
 						foreach( $this->parent->profile->tabs as $tab ){
 							
@@ -819,8 +834,17 @@ class LTPLE_Domains {
 			else{
 			
 				include($this->parent->views . '/navbar.php');
-			
-				include($this->views . '/panel.php');
+				
+				if($this->parent->user->loggedin){
+					
+					add_action('ltple_dashboard_sidebar',array($this->parent->dashboard,'get_sidebar'),10,3);
+					
+					include($this->views . '/panel.php');
+				}
+				else{
+					
+					echo $this->parent->login->get_form();
+				}
 			}
 		}
 		else{
@@ -866,7 +890,7 @@ class LTPLE_Domains {
 	
 	public function get_sidebar_content($sidebar,$currentTab,$output){
 		
-		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="glyphicon glyphicon-globe"></span> Domains</a></li>';
+		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fa fa-network-wired"></span> Domains</a></li>';
 
 		//$sidebar .= '<li'.( $currentTab == 'urls' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '?tab=urls">Urls & Pages</a></li>';
 		
@@ -959,7 +983,7 @@ class LTPLE_Domains {
 
 		echo'<li style="position:relative;background:#182f42;">';
 			
-			echo '<a href="'. $this->parent->urls->domains . '"><span class="glyphicon glyphicon-link" aria-hidden="true"></span> Connected Domains</a>';
+			echo '<a href="'. $this->parent->urls->domains . '"><span class="fa fa-network-wired" aria-hidden="true"></span> Connected Domains</a>';
 
 		echo'</li>';
 

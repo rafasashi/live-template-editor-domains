@@ -24,8 +24,18 @@
 	
 	echo'<div id="panel" class="wrapper">';
 
-		echo $this->parent->dashboard->get_sidebar($currentTab);
-	
+		echo '<div id="sidebar">';
+				
+			echo '<div class="gallery_type_title gallery_head">Dashboard</div>';
+
+			echo '<ul class="nav nav-tabs tabs-left">';
+				
+				echo apply_filters('ltple_dashboard_sidebar','',$currentTab);
+				
+			echo '</ul>';
+			
+		echo '</div>';
+		
 		echo'<div id="content" class="library-content" style="border-left:1px solid #ddd;background:#fbfbfb;padding-bottom:15px;min-height:700px;">';
 			
 			echo'<div class="tab-content">';
