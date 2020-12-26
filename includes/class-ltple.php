@@ -169,6 +169,8 @@ class LTPLE_Domains {
 		
 		add_filter('post_type_link', array( $this, 'get_permalink'),1,2);
 		
+		add_filter('ltple_store_product_url', array( $this, 'get_store_product_url'),1,3);
+		
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 	} // End __construct ()
@@ -348,6 +350,16 @@ class LTPLE_Domains {
 		}
 					
 		return $post_link;
+	}
+	
+	public function get_store_product_url($product_url,$post,$slug){
+		
+		if( $domain = $this->get_primary_domain($post->post_author)){
+			
+			$product_url = $domain . '/' . $slug . '/' . $post->post_name . '/';
+		}
+		
+		return $product_url;
 	}
 	
 	public function get_editor_preview_url($preview_url,$post_id){
