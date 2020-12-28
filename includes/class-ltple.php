@@ -166,11 +166,7 @@ class LTPLE_Domains {
 			'menu_position' 		=> 5,
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
-		
-		add_filter('post_type_link', array( $this, 'get_permalink'),1,2);
-		
-		add_filter('ltple_store_product_url', array( $this, 'get_store_product_url'),1,3);
-		
+
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 	} // End __construct ()
@@ -306,62 +302,6 @@ class LTPLE_Domains {
 		return $template_path;
 	}
 	
-	function get_permalink( $post_link, $post ){
-
-		
-		if( $post->post_type == 'cb-default-layer' ){
-			
-			
-		}
-		elseif( $post->post_type == 'user-layer' ){
-			
-			
-		}
-		elseif( $post->post_status == 'publish' ){
-			
-			if( $post->post_type == 'user-page' ){
-
-				if( $domainUrl = $this->get_domain_permalink($post) ){
-					
-					$post_link = $domainUrl;
-				}
-				else{
-					
-					$post_link = add_query_arg(array( 
-					
-						'post_type' => $post->post_type,
-						'p' 		=> $post->ID,
-					
-					),$post_link);
-				}
-			}
-			else{
-				
-				$storages = $this->parent->layer->get_storage_types();
-				
-				if( isset( $storages[$post->post_type] ) ){
-
-					if( $domainUrl = $this->get_domain_permalink($post) ){
-						
-						$post_link = $domainUrl;
-					}
-				}
-			}
-		}
-					
-		return $post_link;
-	}
-	
-	public function get_store_product_url($product_url,$post,$slug){
-		
-		if( $domain = $this->get_primary_domain($post->post_author)){
-			
-			$product_url = $domain . '/' . $slug . '/' . $post->post_name . '/';
-		}
-		
-		return $product_url;
-	}
-	
 	public function get_editor_preview_url($preview_url,$post_id){
 		
 		$u = parse_url($preview_url);
@@ -377,38 +317,6 @@ class LTPLE_Domains {
 		return $preview_url;
 	}
 	
-	public function get_domain_permalink($post){
-		
-		$domainUrl 	= null;
-		$domainName = '';
-		$domainPath = '';
-					
-		$list = $this->get_user_domain_list($post->post_author);
-		
-		if( !empty($list) ){
-			
-			foreach($list as $domains){
-				
-				foreach($domains as $domain){
-					
-					if(isset($domain->urls[$post->ID])){
-						
-						$domainName = $domain->post_title;
-						$domainPath = $domain->urls[$post->ID];
-						
-						break;
-					}
-				}
-			}
-			
-			if( !empty($domainName) ){
-				
-				$domainUrl = $this->parent->request->proto . $domainName.'/'.$domainPath;
-			}
-		}
-
-		return $domainUrl;
-	}
 	
 	public function get_domain($domain_name=''){
 		
