@@ -84,7 +84,11 @@ class LTPLE_Domains {
 		//init addon 
 		
 		add_action( 'init', array( $this, 'init' ));
-				
+
+		// site name
+		
+		add_filter( 'ltple_site_name',array($this,'filter_site_name'),99999,1);
+
 		// social icons in profile
 		
 		add_action( 'ltple_before_social_icons', array( $this, 'get_social_icons'));		
@@ -107,7 +111,7 @@ class LTPLE_Domains {
 		
 		// add link to theme menu
 		
-		add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'),9);	
+		//add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'),9);	
 		
 		add_filter( 'ltple_collect_user_information', array( $this, 'collect_user_information'));	
 		
@@ -295,6 +299,28 @@ class LTPLE_Domains {
 		}
 		
 		return $primary_domain;
+	}
+	
+	public function is_primary(){
+		
+		if( $primary_domain = $this->get_primary_domain($this->parent->profile->id) ){
+
+			if( strpos($this->parent->urls->current,$primary_domain) === 0 )
+			
+				return true;
+		}
+		
+		return false;
+	}
+	
+	public function filter_site_name($site_name){
+
+		if( $this->is_primary() ){
+			
+			$site_name =  ucfirst(get_user_meta( $this->parent->profile->id , 'nickname', true ));
+		}
+	
+		return $site_name;
 	}
 		
 	public function template_path( $template_path ){
