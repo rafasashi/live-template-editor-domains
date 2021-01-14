@@ -86,6 +86,5 @@
 		$disclaimer .= '</script>';		
 	
 	$disclaimer .= '</body>';
-	
-	
-	echo $disclaimer;
+
+	die($disclaimer);

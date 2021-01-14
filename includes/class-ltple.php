@@ -403,6 +403,18 @@ class LTPLE_Domains {
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
 				
+				//check disclaimer
+					
+				$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+				
+				if( !empty($this->disclaimer) ){
+					
+					$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
+					$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+					
+					include( $this->views . '/disclaimer.php' );
+				}
+					
 				// get request uri
 
 				$request_uri = false;
@@ -428,7 +440,7 @@ class LTPLE_Domains {
 					// get urls
 				
 					if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
-						
+
 						// get path
 						
 						foreach( $this->currentDomain->urls as $layerId => $path ){
@@ -577,26 +589,12 @@ class LTPLE_Domains {
 					include( $this->parent->views . '/layer.php' );										
 				}
 				else{
-					
-					//check disclaimer
-					
-					$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-					
-					if( !empty($this->disclaimer) ){
 						
-						$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
-						$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+					// output subdomain layer
 						
-						include( $this->views . '/disclaimer.php' );
-					}
-					else{
-						
-						// output subdomain layer
-						
-						$this->parent->layer->set_layer($layerId);
+					$this->parent->layer->set_layer($layerId);
 					
-						include( $this->parent->views . '/layer.php' );
-					}
+					include( $this->parent->views . '/layer.php' );
 				}
 			}
 			else{
