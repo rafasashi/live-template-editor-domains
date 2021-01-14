@@ -66,14 +66,12 @@
 					
 					$disclaimer .= "$('#agreeBtn').on('click', function (e) {";
 						
-						if( COOKIE_DOMAIN ){
+						$disclaimer .= "$.cookie('_ltple_disclaimer', 1, {
 							
-							$disclaimer .= "$.cookie('_ltple_disclaimer', 1, {domain: '" . COOKIE_DOMAIN . "'});";
-						}
-						else{
-						
-							$disclaimer .= "$.cookie('_ltple_disclaimer', 1);";
-						}
+							domain: '" . $_SERVER['SERVER_NAME'] . "',
+							path: '/'
+								
+						});";
 						
 						$disclaimer .= 'location.reload();';
 					

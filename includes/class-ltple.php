@@ -403,16 +403,24 @@ class LTPLE_Domains {
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
 				
-				//check disclaimer
+				if( !$this->parent->user->loggedin && empty($_COOKIE['_ltple_disclaimer'])){
 					
-				$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-				
-				if( !empty($this->disclaimer) ){
+					//check disclaimer
+						
+					$domainType = $this->get_domain_type( $this->currentDomain->post_title );
+			
+					if( $domainType == 'subdomain' ){
 					
-					$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
-					$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+						$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+					}
 					
-					include( $this->views . '/disclaimer.php' );
+					if( !empty($this->disclaimer) ){
+						
+						$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
+						$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+						
+						include( $this->views . '/disclaimer.php' );
+					}
 				}
 					
 				// get request uri
@@ -573,38 +581,12 @@ class LTPLE_Domains {
 	public function set_user_layer($layer){
 		
 		if( !empty($layer) && $layer->post_status == 'publish' ){
-			
-			// get domain type
-			
-			$domainType = $this->get_domain_type( $this->currentDomain->post_title );
-			
-			if( $domainType == 'subdomain' ){
-				
-				if( $this->parent->user->loggedin || !empty($_COOKIE['_ltple_disclaimer']) ){
-					
-					// output subdomain layer
+		
+			// output subdomain layer
 						
-					$this->parent->layer->set_layer($layer);
+			$this->parent->layer->set_layer($layer);
 					
-					include( $this->parent->views . '/layer.php' );										
-				}
-				else{
-						
-					// output subdomain layer
-						
-					$this->parent->layer->set_layer($layerId);
-					
-					include( $this->parent->views . '/layer.php' );
-				}
-			}
-			else{
-				
-				// output domain layer
-				
-				$this->parent->layer->set_layer($layerId);
-				
-				include( $this->parent->views . '/layer.php' );								
-			}
+			include( $this->parent->views . '/layer.php' );
 		}
 		else{
 			
