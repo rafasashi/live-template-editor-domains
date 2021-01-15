@@ -826,82 +826,104 @@ class LTPLE_Domains {
 	public function get_edit_layer_url(){
 		
 		if( $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
-		
-			echo'<hr>';
 			
-			echo'<label style="margin:0 11px 0 7px;">URL</label>';
-			
-			if( $this->parent->layer->can_customize_url($this->parent->user->layer) ){
-			
-				echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
-					
-					$default_url = 'None';
-					
-					if( $this->parent->user->layer->post_type != 'user-page' ){
-					
-						$post_type = get_post_type_object($this->parent->user->layer->post_type);
+			echo'<div id="layer_url" style="margin:15px 0 0 0;padding:15px 0 0 0;border-top:1px solid #eee;">';
+				
+				echo'<label style="margin:0 11px 0 7px;">URL</label>';
+				
+				if( $this->parent->layer->can_customize_url($this->parent->user->layer) ){
+				
+					echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
 						
-						if( !empty($post_type->rewrite['slug']) ){
+						$default_url = 'None';
 						
-							$default_url = str_replace($this->parent->request->proto,'',$this->parent->urls->parse_permalink($this->parent->urls->home . '/' . $post_type->rewrite['slug'],$this->parent->user->layer));
+						if( $this->parent->user->layer->post_type != 'user-page' ){
+						
+							$post_type = get_post_type_object($this->parent->user->layer->post_type);
+							
+							if( !empty($post_type->rewrite['slug']) ){
+							
+								$default_url = str_replace($this->parent->request->proto,'',$this->parent->urls->parse_permalink($this->parent->urls->home . '/' . $post_type->rewrite['slug'],$this->parent->user->layer));
+							}
 						}
-					}
-					
-					echo'<option value="-1">'.$default_url.'</option>';
-					
-					if( !empty($this->parent->user->domains->list) ){
 						
-						$domainName = '';
+						echo'<option value="-1">'.$default_url.'</option>';
 						
-						foreach( $this->parent->user->domains->list as $domain_type => $domains ){
+						if( !empty($this->parent->user->domains->list) ){
 							
-							foreach( $domains as $domain ){
+							$domainName = '';
 							
-								if( isset($domain->domainUrls[$this->parent->user->layer->ID]) ){
+							foreach( $this->parent->user->domains->list as $domain_type => $domains ){
+								
+								foreach( $domains as $domain ){
+								
+									if( isset($domain->domainUrls[$this->parent->user->layer->ID]) ){
+										
+										$domainName = $domain->post_title;
+									}																
 									
-									$domainName = $domain->post_title;
-								}																
-								
-								echo'<option value="' . $domain->ID . '"' . ( ( $domainName == $domain->post_title ) ? ' selected="true"' : '' ) . '>';
-								
-									echo $domain->post_title;
+									echo'<option value="' . $domain->ID . '"' . ( ( $domainName == $domain->post_title ) ? ' selected="true"' : '' ) . '>';
+									
+										echo $domain->post_title;
 
-								echo'</option>';
+									echo'</option>';
+								}
+							}
+						}
+					
+					echo'</select>';
+					
+					echo' / ';
+					
+					$domainPath = $this->parent->user->layer->post_name;
+					
+					foreach($this->parent->user->domains->list as $domains){
+						
+						foreach($domains as $domain){
+						
+							if(isset($domain->urls[$this->parent->user->layer->ID])){
+								
+								$domainPath = $domain->urls[$this->parent->user->layer->ID];
 							}
 						}
 					}
-				
-				echo'</select>';
-				
-				echo' / ';
-				
-				$domainPath = $this->parent->user->layer->post_name;
-				
-				foreach($this->parent->user->domains->list as $domains){
 					
-					foreach($domains as $domain){
-					
-						if(isset($domain->urls[$this->parent->user->layer->ID])){
-							
-							$domainPath = $domain->urls[$this->parent->user->layer->ID];
-						}
-					}
+					echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" />';
 				}
-				
-				echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" />';
-			}
-			elseif( $this->parent->user->layer->post_status == 'publish' ){
-				
-				$permalink = get_permalink($this->parent->user->layer);
-				
-				echo '<a href="' . $permalink . '" target="_blank">' . $permalink . '</a>';
-			}
-			else{
+				elseif( $this->parent->user->layer->post_status == 'publish' ){
+					
+					$permalink 	= $this->get_permalink($this->parent->user->layer);
+	
+					echo '<a href="' . $permalink . '" target="_blank">' . $permalink . '</a>';
+				}
+				else{
 
-				echo '<i>Select "Public" status </i>';
-			}
+					echo '<i>Select "Public" status </i>';
+				}
+			
+			echo '</div>';
 		}
 	}
+	
+	public function get_permalink($post){
+		
+		if( is_numeric($post) ){
+			
+			$post = get_post($post);
+		}
+		
+		if( $permalink = get_permalink($post) ){
+		
+
+			$profile_url 	= $this->parent->profile->get_user_url($post->post_author);
+		
+			$primary 		= $this->get_primary_domain($post->post_author);
+		
+			$permalink 		= str_replace($profile_url,$primary,$permalink);
+		}
+		
+		return $permalink;
+	}		
 	
 	public function add_theme_menu_link(){
 
