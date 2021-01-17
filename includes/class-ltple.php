@@ -668,7 +668,7 @@ class LTPLE_Domains {
 				else{
 					
 					// detect ltple shortcode
-					/*
+
 					global $post;
 					
 					if( strpos($post->post_content,'[ltple-client-') !== false ){
@@ -690,7 +690,6 @@ class LTPLE_Domains {
 							return $this->views . '/dashboard.php';
 						}
 					}
-					*/
 				}
 				
 				// redirect to primary site
@@ -702,11 +701,8 @@ class LTPLE_Domains {
 					$url .= '?' . $_SERVER['QUERY_STRING'];
 				}
 				
-				/*
-				dump($url);
 				wp_redirect($url);
-				exit;
-				*/				
+				exit;		
 			}
 			
 			return $template;
