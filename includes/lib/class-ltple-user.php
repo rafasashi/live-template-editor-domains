@@ -229,7 +229,7 @@ class LTPLE_Domains_User {
 					wp_update_post( array(
 					
 						'ID' 		=> $this->parent->user->layer->ID,
-						'post_name'	=> $domainPath,
+						'post_name'	=> trailingslashit($domainPath),
 					));
 				}
 			}
@@ -246,7 +246,7 @@ class LTPLE_Domains_User {
 				
 				$domainId 	= floatval($_POST['domainUrl']['domainId']);
 				
-				$domainPath = sanitize_text_field($_POST['domainUrl']['domainPath']);
+				$domainPath = trailingslashit(sanitize_text_field($_POST['domainUrl']['domainPath']));
 				
 				if( $_POST['domainAction'] == 'assign' && $layerId > 0 && is_numeric($domainId) ){
 					
@@ -264,7 +264,7 @@ class LTPLE_Domains_User {
 										
 										foreach($domain->urls as $id => $path){
 											
-											if( $path == $domainPath){
+											if( $path == $domainPath ){
 												
 												unset($domain->urls[$id]);
 											}
@@ -303,18 +303,6 @@ class LTPLE_Domains_User {
 								}
 							}
 						}
-						/*
-						if( $domainId == -1 && !empty($domainPath) ){
-							
-							// update post slug
-							
-							wp_update_post( array(
-							
-								'ID' 		=> $layerId,
-								'post_name'	=> $domainPath,
-							));
-						}
-						*/
 					}
 				}
 			}

@@ -251,7 +251,7 @@ class LTPLE_Domains {
 				
 				foreach( $domains as $domain ){
 					
-					$domain->urls = get_post_meta($domain->ID ,'domainUrls', true);
+					$domain->urls = $this->get_domain_urls($domain->ID);
 				
 					$domain->type = $this->parent->domains->get_domain_type($domain->post_title);
 					
@@ -271,6 +271,22 @@ class LTPLE_Domains {
 		}
 			
 		return $list;
+	}
+	
+	public function get_domain_urls($domain_id){
+		
+		if( $urls = get_post_meta($domain_id ,'domainUrls', true) ){
+			
+			foreach( $urls as $id => $path ){
+				
+				if( !empty($path) ){
+					
+					$urls[$id] = trailingslashit($path); 
+				}
+			}
+		}
+	
+		return $urls;
 	}
 	
 	public function get_primary_domain( $user = null ){
@@ -447,7 +463,7 @@ class LTPLE_Domains {
 					
 					// get urls
 				
-					if( $this->currentDomain->urls = get_post_meta($this->currentDomain->ID ,'domainUrls', true) ){
+					if( $this->currentDomain->urls = $this->get_domain_urls($this->currentDomain->ID) ){
 
 						// get path
 						
@@ -570,7 +586,7 @@ class LTPLE_Domains {
 			}
 
 			if( $url != $this->parent->urls->current ){
-
+				
 				wp_redirect($url);
 				exit;
 			}
@@ -652,7 +668,7 @@ class LTPLE_Domains {
 				else{
 					
 					// detect ltple shortcode
-					
+					/*
 					global $post;
 					
 					if( strpos($post->post_content,'[ltple-client-') !== false ){
@@ -674,6 +690,7 @@ class LTPLE_Domains {
 							return $this->views . '/dashboard.php';
 						}
 					}
+					*/
 				}
 				
 				// redirect to primary site
@@ -685,8 +702,11 @@ class LTPLE_Domains {
 					$url .= '?' . $_SERVER['QUERY_STRING'];
 				}
 				
+				/*
+				dump($url);
 				wp_redirect($url);
-				exit;				
+				exit;
+				*/				
 			}
 			
 			return $template;
@@ -887,6 +907,8 @@ class LTPLE_Domains {
 							}
 						}
 					}
+					
+					$domainPath = trailingslashit($domainPath);
 					
 					echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" />';
 				}
