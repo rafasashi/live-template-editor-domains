@@ -652,20 +652,7 @@ class LTPLE_Domains {
 			
 			if( $this->parent->profile->id > 0 ){
 				
-				if( $this->parent->profile->in_tab ){
-					
-					if( $this->parent->profile->tab != 'home' || !empty($this->parent->profile->tabs['home']['content']) ){
-						
-						foreach( $this->parent->profile->tabs as $tab ){
-							
-							if( $tab['slug'] == $this->parent->profile->tab ){
-								
-								return $this->views . '/profile.php';
-							}
-						}
-					}
-				}
-				else{
+				if( !$this->parent->profile->in_tab ){
 					
 					// detect ltple shortcode
 
