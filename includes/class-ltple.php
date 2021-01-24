@@ -537,10 +537,17 @@ class LTPLE_Domains {
 			
 			// is editor preview
 
-			if( !empty($args['preview']) && $args['preview'] == 'ltple' )
-			
-				return;
+			if( !empty($args['preview']) ){
 				
+				if( $args['preview'] == 'ltple' )
+				
+					return;
+					
+				if( $args['preview'] == 'true' && $this->parent->user->loggedin && $this->parent->user->ID == $this->parent->profile->id )
+			
+					return;
+			}
+			
 			// is not profile
 			
 			if( !$this->parent->profile->id > 0 )
@@ -695,21 +702,6 @@ class LTPLE_Domains {
 			return $template;
 			
 		},999999);		
-	}
-	
-	public function is_white_label_tab(){
-		
-		global $post;
-		
-		$tabs = array(
-			
-			'dashboard',
-			'inbox',
-		);
-		
-		dump($post);
-		
-		return $tabs;
 	}
 	
 	public function get_social_icons(){
