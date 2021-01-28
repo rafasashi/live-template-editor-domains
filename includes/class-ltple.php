@@ -17,8 +17,6 @@ class LTPLE_Domains {
 	var $enable_subdomains 	= 'off';
 	var $default_domains 	= null;
 	var $disclaimer			= '';
-	var $agreeButton		= 'I agree';
-	var $disagreeButton		= 'I disagree';
 	var $currentDomain		= null;
 	var $userDomains		= array();
 	
@@ -83,8 +81,10 @@ class LTPLE_Domains {
 
 		//init addon 
 		
-		add_action( 'init', array( $this, 'init' ));
-
+		add_action('init', array( $this, 'init_domain' ));
+		
+		add_filter('ltple_profile_redirect', array( $this, 'redirect_profile' ),99999);
+		
 		// site name
 		
 		add_filter( 'ltple_site_name',array($this,'filter_site_name'),99999,1);
@@ -174,6 +174,73 @@ class LTPLE_Domains {
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 	} // End __construct ()
+	
+	public function redirect_profile(){
+
+		// parse query string
+		
+		parse_str($_SERVER['QUERY_STRING'],$args);
+		
+		// is editor preview
+
+		if( !empty($args['preview']) ){
+			
+			if( $args['preview'] == 'ltple' )
+			
+				return;
+				
+			if( $args['preview'] == 'true' && $this->parent->user->loggedin && $this->parent->user->ID == $this->parent->profile->id )
+		
+				return;
+		}
+		
+		// is not profile
+		
+		if( !$this->parent->profile->id > 0 )
+		
+			return;
+			
+		// get primary domain
+		
+		if( !$primary_domain = $this->get_primary_domain($this->parent->profile->id) )
+		
+			return;
+
+		// is primary domain
+		
+		if( strpos($this->parent->urls->current,$primary_domain) === 0 ){
+			
+			if( $this->parent->user->loggin )
+			
+				return;
+		}
+
+		// redirect profile url
+		
+		if( $this->is_primary_tab() ){
+			
+			$url = $this->parent->urls->primary;
+		}
+		else{
+			
+			$url = $primary_domain;
+		}
+		
+		if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
+			
+			$url .= preg_replace('/^\/' . $this->parent->profile->slug . '\/' . $this->parent->profile->id . '\//', '', $_SERVER['REQUEST_URI']);
+		}
+		elseif( !empty($_SERVER['QUERY_STRING']) ){
+
+			$url .= '?' . $_SERVER['QUERY_STRING'];
+		}
+		
+		if( $url != $this->parent->urls->current ){
+			
+			wp_redirect($url);
+			exit;
+		}
+	}
 	
 	public function get_default_domains(){
 		 
@@ -317,7 +384,7 @@ class LTPLE_Domains {
 		return $primary_domain;
 	}
 	
-	public function is_primary(){
+	public function is_primary_domain(){
 		
 		if( $primary_domain = $this->get_primary_domain($this->parent->profile->id) ){
 
@@ -329,9 +396,24 @@ class LTPLE_Domains {
 		return false;
 	}
 	
+	public function is_primary_tab(){
+		
+		if( in_array($this->parent->profile->tab,array(
+			
+			'editor',
+			'ranking',
+			
+		)) ){
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
 	public function filter_site_name($site_name){
 
-		if( $this->is_primary() ){
+		if( $this->is_primary_domain() ){
 			
 			$site_name =  ucfirst(get_user_meta( $this->parent->profile->id , 'nickname', true ));
 		}
@@ -400,7 +482,7 @@ class LTPLE_Domains {
 		return $domain;
 	}
 	
-	public function init(){	
+	public function init_domain(){	
 		
 		// get domain	
 		
@@ -419,23 +501,23 @@ class LTPLE_Domains {
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
 				
-				if( !$this->parent->user->loggedin && empty($_COOKIE['_ltple_disclaimer'])){
+				if( !$this->parent->user->loggedin ){
 					
-					//check disclaimer
+					if( empty($_COOKIE['_ltple_disclaimer']) ){
 						
-					$domainType = $this->get_domain_type( $this->currentDomain->post_title );
-			
-					if( $domainType == 'subdomain' ){
-					
-						$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-					}
-					
-					if( !empty($this->disclaimer) ){
+						//check disclaimer
+							
+						$domainType = $this->get_domain_type( $this->currentDomain->post_title );
+				
+						if( $domainType == 'subdomain' ){
 						
-						$this->agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', $this->agreeButton);
-						$this->disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', $this->disagreeButton);
+							$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+						}
 						
-						include( $this->views . '/disclaimer.php' );
+						if( !empty($this->disclaimer) ){
+							
+							include( $this->views . '/disclaimer.php' );
+						}
 					}
 				}
 					
@@ -528,77 +610,6 @@ class LTPLE_Domains {
 				exit;
 			}
 		}
-		
-		add_filter('ltple_profile_redirect', function(){
-			
-			// parse query string
-			
-			parse_str($_SERVER['QUERY_STRING'],$args);
-			
-			// is editor preview
-
-			if( !empty($args['preview']) ){
-				
-				if( $args['preview'] == 'ltple' )
-				
-					return;
-					
-				if( $args['preview'] == 'true' && $this->parent->user->loggedin && $this->parent->user->ID == $this->parent->profile->id )
-			
-					return;
-			}
-			
-			// is not profile
-			
-			if( !$this->parent->profile->id > 0 )
-			
-				return;
-			
-			// get primary domain
-			
-			if( !$primary_domain = $this->get_primary_domain($this->parent->profile->id) )
-			
-				return;
-				
-			// is primary domain
-			
-			if( strpos($this->parent->urls->current,$primary_domain) === 0 )
-			
-				return;
-			
-			// redirect profile url
-
-			if( $primary_domain == $this->parent->urls->home ){
-				
-				$url = $this->parent->urls->profile . $this->parent->profile->id . '/';
-			}
-			else{
-				
-				$url = $primary_domain . '/';
-			}
-			
-			if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
-				
-				$url .= $this->parent->profile->tab . '/';
-				
-				if( !empty($this->parent->profile->tabSlug) ){
-					
-					$url .= $this->parent->profile->tabSlug . '/';
-				}
-			}
-			
-			if( !empty($_SERVER['QUERY_STRING']) ){
-
-				$url .= '?' . $_SERVER['QUERY_STRING'];
-			}
-
-			if( $url != $this->parent->urls->current ){
-				
-				wp_redirect($url);
-				exit;
-			}
-			
-		},99999);
 	}
 	
 	public function set_user_layer($layer){

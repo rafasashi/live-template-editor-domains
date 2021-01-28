@@ -1,5 +1,8 @@
 <?php
 
+	$agreeButton 		= get_option($this->parent->_base  . 'disclamer_agree_buttom', 'I agree');
+	$disagreeButton 	= get_option($this->parent->_base  . 'disclamer_disagree_buttom', 'I disagree');
+							
 	$disclaimer  = '<!DOCTYPE html>';
 	
 	$disclaimer .= '<html>';
@@ -43,9 +46,9 @@
 					
 					$disclaimer .= '<div class="modal-footer">';
 					
-						$disclaimer .= '<button id="agreeBtn" class="btn btn-success">' . $this->agreeButton . '</button>';
+						$disclaimer .= '<button id="agreeBtn" class="btn btn-success">' . $agreeButton . '</button>';
 					
-						$disclaimer .= '<a id="disagreeBtn" href="https://google.com" ref="nofollow" class="btn btn-danger">' . $this->disagreeButton . '</a>';
+						$disclaimer .= '<a id="disagreeBtn" href="https://google.com" ref="nofollow" class="btn btn-danger">' . $disagreeButton . '</a>';
 						
 					$disclaimer .= '</div>';
 					
