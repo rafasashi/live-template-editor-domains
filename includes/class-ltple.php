@@ -213,6 +213,10 @@ class LTPLE_Domains {
 			if( $this->parent->user->loggin )
 			
 				return;
+			
+			if( $this->parent->profile->tab == 'home' )
+				
+				return;
 		}
 
 		// redirect profile url
@@ -226,7 +230,7 @@ class LTPLE_Domains {
 			$url = $primary_domain;
 		}
 		
-		if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
+		if( !empty($this->parent->profile->tab) ){
 			
 			$url .= preg_replace('#^\/' . $this->parent->profile->slug . '\/' . $this->parent->profile->id . '#', '', $_SERVER['REQUEST_URI']);
 		}
