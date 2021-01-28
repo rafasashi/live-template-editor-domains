@@ -228,7 +228,7 @@ class LTPLE_Domains {
 		
 		if( !empty($this->parent->profile->tab) && $this->parent->profile->tab != 'home' ){
 			
-			$url .= preg_replace('/^\/' . $this->parent->profile->slug . '\/' . $this->parent->profile->id . '\//', '', $_SERVER['REQUEST_URI']);
+			$url .= preg_replace('#^\/' . $this->parent->profile->slug . '\/' . $this->parent->profile->id . '#', '', $_SERVER['REQUEST_URI']);
 		}
 		elseif( !empty($_SERVER['QUERY_STRING']) ){
 
