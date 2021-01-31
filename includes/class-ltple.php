@@ -217,6 +217,10 @@ class LTPLE_Domains {
 			if( $this->parent->profile->tab == 'home' )
 				
 				return;
+				
+			if( $primary_domain == $this->parent->urls->primary )
+			
+				return;
 		}
 
 		// redirect profile url
