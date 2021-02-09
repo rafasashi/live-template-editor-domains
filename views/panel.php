@@ -52,16 +52,20 @@
 						}
 						else{
 							
-							echo'<div class="bs-callout bs-callout-primary">';
-
-								echo '<h4>Domains and Subdomains</h4>';
-
-								echo '<p>';
-								
-									echo 'In this section you can manage your domains. Create a new subdomain, connect an existing domain or remove one.';
-								
-								echo'</p>';
+							echo'<div class="col-xs-12">';
 							
+								echo'<div class="bs-callout bs-callout-primary">';
+
+									echo '<h4>Domains and Subdomains</h4>';
+
+									echo '<p>';
+									
+										echo 'In this section you can manage your domains. Create a new subdomain, connect an existing domain or remove one.';
+									
+									echo'</p>';
+								
+								echo'</div>';
+								
 							echo'</div>';
 							
 							if(!empty($this->parent->user->domains->list)){
