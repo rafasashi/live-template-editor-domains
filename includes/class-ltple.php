@@ -676,7 +676,7 @@ class LTPLE_Domains {
 
 		add_action( 'template_include', function($template){
 			
-			if( $this->parent->profile->id > 0 && !isset($_GET['output']) ){
+			if( $this->parent->profile->id > 0 ){
 				
 				if( !$this->parent->profile->in_tab ){
 					
@@ -702,6 +702,14 @@ class LTPLE_Domains {
 							
 							return $this->views . '/dashboard.php';
 						}
+					}
+					elseif( $this->parent->profile->tab == 'login' ){
+						
+						return $this->views . '/dashboard.php';
+					}
+					elseif( $this->parent->inWidget ){
+						
+						return $template;
 					}
 				}
 				
