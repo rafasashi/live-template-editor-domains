@@ -222,7 +222,7 @@ class LTPLE_Domains {
 			
 				return;
 		}
-
+		
 		// redirect profile url
 		
 		if( $this->is_primary_tab() ){
@@ -676,7 +676,7 @@ class LTPLE_Domains {
 
 		add_action( 'template_include', function($template){
 			
-			if( $this->parent->profile->id > 0 ){
+			if( $this->parent->profile->id > 0 && !isset($_GET['output']) ){
 				
 				if( !$this->parent->profile->in_tab ){
 					
