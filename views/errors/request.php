@@ -36,7 +36,7 @@
 	</head>
 	
 	<body>
-	
+		<?php wp_body_open(); ?>
 		<div class="row" id="LiveTplEditorMenu">
 
 			<div class="col-xs-9"></div>			

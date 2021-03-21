@@ -143,7 +143,11 @@ class LTPLE_Domains {
 		add_filter( 'ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
 		
 		add_filter( 'ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
-			 
+			
+		add_action( 'ltple_user-page_link', array( $this, 'filter_user_page_link'),10,2);	
+		
+		add_action( 'ltple_user-product_link', array( $this, 'filter_user_product_link'),10,2);	
+						
 		add_action( 'ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
 			
 		$this->add_star_triggers();
@@ -845,6 +849,56 @@ class LTPLE_Domains {
 		return $sidebar;
 	}
 	
+	public function filter_user_page_link($post_link,$post){
+		
+		$user_domains = $this->get_user_domain_list( $post->post_author );
+
+		if( !empty($user_domains) ){
+			
+			foreach( $user_domains as $domains ){
+				
+				if( !empty($domains) ){
+				
+					foreach( $domains as $domain){
+						
+						if( isset($domain->urls[$post->ID]) ){
+							
+							if( $post->post_status == 'publish' ){
+								
+								return $this->parent->request->proto . trailingslashit($domain->post_title . '/' . $domain->urls[$post->ID]);
+							}
+							else{
+								
+								return $this->parent->request->proto . $domain->post_title;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return $post_link;
+	}
+	
+	public function filter_user_product_link($post_link,$post){
+		
+		if( $primary_domain = $this->get_primary_domain($post->post_author) ){
+			
+			$url = parse_url($post_link);
+			
+			if( !empty($url['path']) ){
+				
+				$post_link = $primary_domain . preg_replace('#^\/' . $this->parent->profile->slug . '\/' . $post->post_author . '#', '', $url['path']);
+			}
+			else{
+			
+				$post_link = $primary_domain;
+			}
+		}
+		
+		return $post_link;
+	}
+	
 	public function get_edit_layer_url(){
 		
 		if( $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
@@ -937,7 +991,6 @@ class LTPLE_Domains {
 		}
 		
 		if( $permalink = get_permalink($post) ){
-		
 
 			$profile_url 	= $this->parent->profile->get_user_url($post->post_author);
 		
