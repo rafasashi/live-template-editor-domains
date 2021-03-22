@@ -1551,7 +1551,7 @@ class LTPLE_Domains {
 				
 				// TODO replace url by something else
 				
-				$entry['loc'] = '#' . $object_type . '_' . $type_name. '_' . $page;
+				$entry['loc'] = $this->parent->urls->current . '#' . $object_type . '_' . $type_name. '_' . $page;
 			}
 		}
 		
@@ -1568,7 +1568,7 @@ class LTPLE_Domains {
 				
 				// TODO replace url by similar content or search page results
 				
-				$entry['loc'] = '#' . $post->ID;
+				$entry['loc'] = WP_HOME . '#' . $post->ID;
 			}
 		}
 		
