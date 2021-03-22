@@ -183,6 +183,8 @@ class LTPLE_Domains {
 		
 		add_filter('wp_sitemaps_taxonomies',array($this,'filter_sitemaps_taxonomies'),99999,1);
 		
+		add_filter('wp_sitemaps_posts_query_args',array($this,'filter_sitemaps_posts_query_args'),99999,1);
+		
 		add_filter('wp_sitemaps_users_query_args',array($this,'filter_sitemaps_users_query_args'),99999,1);
 		
 		add_filter('wp_sitemaps_posts_entry',array($this,'filter_sitemaps_posts_entry'),0,3);
@@ -1549,11 +1551,11 @@ class LTPLE_Domains {
 	
 	public function filter_sitemaps_post_types($post_types){
 		
-		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE == WP_HOME ){
 			
 			foreach( $post_types as $slug => $post_type ){
 				
-				if( strpos($slug,'user-') !== 0 ){
+				if( strpos($slug,'user-') === 0 ){
 					
 					unset($post_types[$slug]);
 				}
@@ -1571,6 +1573,19 @@ class LTPLE_Domains {
 		}
 		
 		return $taxonomies;
+	}
+	
+	public function filter_sitemaps_posts_query_args($args){
+		
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+			
+			if( $domain = $this->get_domain(REW_SITE) ){
+				
+				$args['author'] = $domain->post_author;
+			}
+		}
+		
+		return $args;
 	}
 	
 	public function filter_sitemaps_users_query_args($args){
