@@ -1551,7 +1551,17 @@ class LTPLE_Domains {
 	
 	public function filter_sitemaps_post_types($post_types){
 		
-		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE == WP_HOME ){
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+			
+			foreach( $post_types as $slug => $post_type ){
+				
+				if( strpos($slug,'user-') !== 0 ){
+					
+					unset($post_types[$slug]);
+				}
+			}
+		}
+		else{
 			
 			foreach( $post_types as $slug => $post_type ){
 				
@@ -1559,7 +1569,7 @@ class LTPLE_Domains {
 					
 					unset($post_types[$slug]);
 				}
-			}
+			}			
 		}
 		
 		return $post_types;
