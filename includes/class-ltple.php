@@ -179,8 +179,12 @@ class LTPLE_Domains {
 		
 		// sitemaps
 		
-		add_filter('wp_sitemaps_index_entry', array($this,'filter_sitemaps_index_entry'),0,4);
-
+		add_filter('wp_sitemaps_post_types',array($this,'filter_sitemaps_post_types'),99999,1);
+		
+		add_filter('wp_sitemaps_taxonomies',array($this,'filter_sitemaps_taxonomies'),99999,1);
+		
+		add_filter('wp_sitemaps_users_query_args',array($this,'filter_sitemaps_users_query_args'),99999,1);
+		
 		add_filter('wp_sitemaps_posts_entry',array($this,'filter_sitemaps_posts_entry'),0,3);
 		
 	} // End __construct ()
@@ -1543,19 +1547,40 @@ class LTPLE_Domains {
 	    load_plugin_textdomain( $domain, false, dirname( plugin_basename( $this->file ) ) . '/lang/' );
 	} // End load_plugin_textdomain ()
 	
-	public function filter_sitemaps_index_entry($entry, $object_type, $type_name, $page){
+	public function filter_sitemaps_post_types($post_types){
 		
 		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
 			
-			if( $object_type != 'post' || strpos($type_name,'user-') !== 0 ){
+			foreach( $post_types as $slug => $post_type ){
 				
-				// TODO replace url by something else
-				
-				$entry['loc'] = $this->parent->urls->current . '#' . $object_type . '_' . $type_name. '_' . $page;
+				if( strpos($slug,'user-') !== 0 ){
+					
+					unset($post_types[$slug]);
+				}
 			}
 		}
 		
-		return $entry;
+		return $post_types;
+	}
+
+	public function filter_sitemaps_taxonomies($taxonomies){
+		
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+			
+			return array();
+		}
+		
+		return $taxonomies;
+	}
+	
+	public function filter_sitemaps_users_query_args($args){
+		
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+			
+			$args['has_published_posts'] = array('fake_type'); // return empty posts
+		}
+		
+		return $args;
 	}
 	
 	public function filter_sitemaps_posts_entry($entry, $post, $post_type){
