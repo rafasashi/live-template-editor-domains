@@ -177,6 +177,12 @@ class LTPLE_Domains {
 
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
+		// sitemaps
+		
+		add_filter('wp_sitemaps_index_entry', array($this,'filter_sitemaps_index_entry'),0,4);
+
+		add_filter('wp_sitemaps_posts_entry',array($this,'filter_sitemaps_posts_entry'),0,3);
+		
 	} // End __construct ()
 	
 	public function redirect_profile(){
@@ -1536,6 +1542,38 @@ class LTPLE_Domains {
 	    load_textdomain( $domain, WP_LANG_DIR . '/' . $domain . '/' . $domain . '-' . $locale . '.mo' );
 	    load_plugin_textdomain( $domain, false, dirname( plugin_basename( $this->file ) ) . '/lang/' );
 	} // End load_plugin_textdomain ()
+	
+	public function filter_sitemaps_index_entry($entry, $object_type, $type_name, $page){
+		
+		if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+			
+			if( $object_type != 'post' || strpos($type_name,'user-') !== 0 ){
+				
+				// TODO replace url by something else
+				
+				$entry['loc'] = '#' . $object_type . '_' . $type_name. '_' . $page;
+			}
+		}
+		
+		return $entry;
+	}
+	
+	public function filter_sitemaps_posts_entry($entry, $post, $post_type){
+		
+		if( isset($entry['loc']) ){
+		
+			$host = parse_url($entry['loc'],PHP_URL_HOST);
+			
+			if( $_SERVER['HTTP_HOST'] != $host ){
+				
+				// TODO replace url by similar content or search page results
+				
+				$entry['loc'] = '#' . $post->ID;
+			}
+		}
+		
+		return $entry;
+	}
 
 	/**
 	 * Main LTPLE_Domains Instance
