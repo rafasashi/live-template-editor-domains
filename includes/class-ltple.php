@@ -189,6 +189,10 @@ class LTPLE_Domains {
 		
 		add_filter('wp_sitemaps_posts_entry',array($this,'filter_sitemaps_posts_entry'),0,3);
 		
+		// feeds
+		
+		add_filter('pre_get_posts',array($this,'filter_feed_query'),99999999,1);
+		
 	} // End __construct ()
 	
 	public function redirect_profile(){
@@ -1623,6 +1627,31 @@ class LTPLE_Domains {
 		}
 		
 		return $entry;
+	}
+	
+	public function filter_feed_query( $query ) {
+
+		if ( is_feed() && $query->is_main_query() ){
+			
+			// add custom post types to main feed
+			
+			if( defined('REW_PRIMARY_SITE') && REW_PRIMARY_SITE != WP_HOME ){
+				
+				if( $domain = $this->get_domain(REW_SITE) ){
+					
+					// filter author
+				
+					$query->set( 'author', $domain->post_author );
+					
+					// filter post types
+					
+					$query->set( 'post_type', apply_filters('ltple_domain_feed_post_types',array('user-page'),$domain) );
+				}
+			}
+		}
+		
+		return $query;
+		
 	}
 
 	/**
