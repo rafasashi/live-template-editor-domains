@@ -462,7 +462,7 @@ class LTPLE_Domains {
 			
 			if( $domain = $this->get_domain($u['host']) ){
 				
-				$preview_url = $this->parent->urls->profile . $domain->post_author . $u['path'] . '?' . $u['query'] . '&domain=' . $u['host'];
+				$preview_url = $this->parent->urls->profile . $domain->post_author . ( !empty($u['path']) ? $u['path'] : '/' ) . '?' . $u['query'] . '&domain=' . $u['host'];
 			}
 		}
 		
