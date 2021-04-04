@@ -531,7 +531,7 @@ class LTPLE_Domains {
 				
 				if( !$this->parent->user->loggedin ){
 					
-					if( empty($_COOKIE['_ltple_disclaimer']) ){
+					if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
 						
 						//check disclaimer
 							
