@@ -1651,7 +1651,6 @@ class LTPLE_Domains {
 		}
 		
 		return $query;
-		
 	}
 
 	/**

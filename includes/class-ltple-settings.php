@@ -49,7 +49,7 @@ class LTPLE_Domains_Settings {
 		
 		// add settings
 		
-		add_action('ltple_plugin_settings', array($this, 'settings_fields' ) );
+		add_action('ltple_settings_fields', array($this, 'settings_fields' ),10,1 );
 		
 		// add menu
 		
@@ -78,10 +78,8 @@ class LTPLE_Domains_Settings {
 	 * Build settings fields
 	 * @return array Fields to be displayed on settings page
 	 */
-	public function settings_fields () {
-		
-		$settings = [];
-		
+	public function settings_fields ($settings) {
+
 		$settings['urls']['fields'][] = array(
 		
 			'id' 			=> 'domainSlug',
@@ -139,23 +137,8 @@ class LTPLE_Domains_Settings {
 				),
 			)
 		);		
-		
-		if( !empty($settings) ){
-		
-			foreach( $settings as $slug => $data ){
-				
-				if( isset($this->parent->settings->settings[$slug]['fields']) && !empty($data['fields']) ){
-					
-					$fields = $this->parent->settings->settings[$slug]['fields'];
-					
-					$this->parent->settings->settings[$slug]['fields'] = array_merge($fields,$data['fields']);
-				}
-				else{
-					
-					$this->parent->settings->settings[$slug] = $data;
-				}
-			}
-		}
+
+		return $settings;
 	}
 	
 	/**
