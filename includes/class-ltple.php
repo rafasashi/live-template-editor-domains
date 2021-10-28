@@ -626,10 +626,10 @@ class LTPLE_Domains {
 		
 		//check disclaimer
 		
-		if( !$this->parent->user->loggedin ){
+		if( !$this->parent->user->loggedin && !empty($this->currentDomain) ){
 			
 			if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
-
+				
 				$domainType = $this->get_domain_type( $this->currentDomain->post_title );
 		
 				if( $domainType == 'subdomain' ){
