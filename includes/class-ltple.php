@@ -85,6 +85,8 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_profile_redirect', array( $this, 'redirect_profile' ),99999);
 		
+		add_filter('ltple_profile_disclaimer', array( $this, 'set_user_disclaimer' ),0);
+		
 		// site name
 		
 		add_filter( 'ltple_site_name',array($this,'filter_site_name'),99999,1);
@@ -528,26 +530,6 @@ class LTPLE_Domains {
 		if( !empty($domain_name) ){
 			
 			if( $this->currentDomain = $this->get_domain($domain_name) ){
-				
-				if( !$this->parent->user->loggedin ){
-					
-					if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
-						
-						//check disclaimer
-							
-						$domainType = $this->get_domain_type( $this->currentDomain->post_title );
-				
-						if( $domainType == 'subdomain' ){
-						
-							$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-						}
-						
-						if( !empty($this->disclaimer) ){
-							
-							include( $this->views . '/disclaimer.php' );
-						}
-					}
-				}
 					
 				// get request uri
 
@@ -582,7 +564,7 @@ class LTPLE_Domains {
 							if( '/' . $path == $this->uri ){
 								
 								if( $layer = get_post($layerId) ){
-									
+
 									// check license
 									
 									if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
@@ -640,8 +622,31 @@ class LTPLE_Domains {
 		}
 	}
 	
-	public function set_user_layer($layer){
+	public function set_user_disclaimer(){
 		
+		//check disclaimer
+		
+		if( !$this->parent->user->loggedin ){
+			
+			if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
+
+				$domainType = $this->get_domain_type( $this->currentDomain->post_title );
+		
+				if( $domainType == 'subdomain' ){
+				
+					$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+				}
+				
+				if( !empty($this->disclaimer) ){
+					
+					include( $this->views . '/disclaimer.php' );
+				}
+			}
+		}
+	}
+	
+	public function set_user_layer($layer){
+
 		if( !empty($layer) && $layer->post_status == 'publish' ){
 		
 			// output subdomain layer
@@ -657,7 +662,7 @@ class LTPLE_Domains {
 	}
 	
 	public function set_user_profile(){
-
+		
 		remove_action('template_redirect', 'redirect_canonical');
 					
 		add_filter('ltple_profile_id', function($id){
