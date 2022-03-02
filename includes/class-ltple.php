@@ -797,7 +797,9 @@ class LTPLE_Domains {
 	}
 	
 	public function get_panel_shortcode(){
-
+		
+		ob_start();
+		
 		if($this->parent->user->loggedin){
 
 			if( !empty($_REQUEST['output']) && $_REQUEST['output'] == 'widget' ){
@@ -835,7 +837,9 @@ class LTPLE_Domains {
 				echo'</div>';
 				
 			echo'</div>';
-		}		
+		}
+
+		return ob_get_clean();
 	}
 	
 	public function get_panel_url(){
