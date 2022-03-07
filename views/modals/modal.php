@@ -32,11 +32,9 @@
 					
 					<?php 
 					
-						if( !empty($_SESSION['message']) ){
+						if( $message = $this->parent->session->get_user_data('message') ){
 							
-							echo $_SESSION['message'];
-						
-							$_SESSION['message'] = '';
+							echo $message.PHP_EOL;
 						}
 						
 						$_REQUEST['action'] = 'addSubdomain';

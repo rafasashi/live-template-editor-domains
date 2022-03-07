@@ -7,12 +7,10 @@
 		echo $this->parent->message;
 	}
 	
-	if(!empty($_SESSION['message'])){
+	if( $message = $this->parent->session->get_user_data('message') ){
 		
-		echo $_SESSION['message'].PHP_EOL;
-		
-		$_SESSION['message'] = '';
-	}	
+		echo $message.PHP_EOL;
+	}
 
 	// get current tab
 	

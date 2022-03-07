@@ -90,7 +90,9 @@ class LTPLE_Domains_User {
 	public function save_domain(){
 		
 		if( !empty($_POST['action']) ){
-			
+							
+			$message = '';
+				
 			if( $_POST['action'] == 'addSubdomain' ){
 				
 				// validate subdomain
@@ -100,27 +102,22 @@ class LTPLE_Domains_User {
 				$subdomain = !empty($_POST['subdomain']) ? strtolower($_POST['subdomain']) : '';
 				
 				$default_domains = $this->parent->domains->get_default_domains();
-				
-				if(!isset($_SESSION['message'])){
-					
-					$_SESSION['message']='';
-				}
-				
+
 				if( strlen($subdomain) < 6 ){
 					
 					// error length
 					
-					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is smaller than 6 characters</div>';
+					$message .= '<div class="alert alert-warning">This subdomain is smaller than 6 characters</div>';
 				}
 				elseif( !ctype_alnum($subdomain) ){
 					
-					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is not alphanumeric, please use only letters and numbers</div>';
+					$message .= '<div class="alert alert-warning">This subdomain is not alphanumeric, please use only letters and numbers</div>';
 				}
 				elseif( !in_array($domain,$default_domains) ){
 					
 					// error domain
 					
-					$_SESSION['message'] .= '<div class="alert alert-warning">This shared domain is not registered</div>';
+					$message .= '<div class="alert alert-warning">This shared domain is not registered</div>';
 				}
 				elseif( get_posts(array(
 				
@@ -129,7 +126,7 @@ class LTPLE_Domains_User {
 				
 				)) ){ 
 
-					$_SESSION['message'] .= '<div class="alert alert-warning">This subdomain is already taken</div>';
+					$message .= '<div class="alert alert-warning">This subdomain is already taken</div>';
 				}
 				else{
 					
@@ -150,26 +147,31 @@ class LTPLE_Domains_User {
 					
 						do_action('ltple_subdomain_reserved');
 					
-						$_SESSION['message'] .= '<div class="alert alert-success">You have successfully added a subdomain</div>';
+						$message .= '<div class="alert alert-success">You have successfully added a subdomain</div>';
 					}
 					else{
 					
-						$_SESSION['message'] .= '<div class="alert alert-warning">You cannot create more subdomains</div>';
+						$message .= '<div class="alert alert-warning">You cannot create more subdomains</div>';
 					}
 				}
 				
-				$_SESSION['message'] .= '<script>' . PHP_EOL;
-					$_SESSION['message'] .= 'window.onunload = refreshParent;' . PHP_EOL;
-					$_SESSION['message'] .= 'function refreshParent() {' . PHP_EOL;
-						$_SESSION['message'] .= 'window.opener.location.reload();' . PHP_EOL;
-					$_SESSION['message'] .= '}' . PHP_EOL;
-				$_SESSION['message'] .= '</script>' . PHP_EOL;
+				$message .= '<script>' . PHP_EOL;
+					$message .= 'window.onunload = refreshParent;' . PHP_EOL;
+					$message .= 'function refreshParent() {' . PHP_EOL;
+						$message .= 'window.opener.location.reload();' . PHP_EOL;
+					$message .= '}' . PHP_EOL;
+				$message .= '</script>' . PHP_EOL;
 			}
 			elseif( $_POST['action'] == 'addDomain' ){
 				
 				// add connected domain
 				
 				
+			}
+			
+			if( !empty($message) ){
+				
+				$this->parent->session->update_user_data('message',$message);
 			}
 		}
 	}
