@@ -194,7 +194,7 @@ class LTPLE_Domains_User {
 						
 						if( $domainId == $domain->ID ){
 							
-							if( !empty($domain->urls) && in_array( $domainPath, $domain->urls) ){
+							if( !empty($domain->urls) && in_array( $domainPath, $domain->urls ) ){
 								
 								// unset previous url
 								

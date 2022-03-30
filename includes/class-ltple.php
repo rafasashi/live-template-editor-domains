@@ -371,19 +371,23 @@ class LTPLE_Domains {
 	}
 	
 	public function get_domain_urls($domain_id){
+
+		$domain_urls = array();
 		
-		if( $urls = get_post_meta($domain_id ,'domainUrls', true) ){
+		$urls = get_post_meta($domain_id ,'domainUrls', true);
+		
+		if( !empty($urls) && is_array($urls) ){
 			
 			foreach( $urls as $id => $path ){
 				
 				if( !empty($path) ){
 					
-					$urls[$id] = trailingslashit($path); 
+					$domain_urls[$id] = trailingslashit($path); 
 				}
 			}
 		}
 	
-		return $urls;
+		return $domain_urls;
 	}
 	
 	public function get_primary_domain( $user = null ){
