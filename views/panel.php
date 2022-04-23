@@ -89,6 +89,7 @@
 													
 													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $license_holder_subdomains . ' / ' . $total_plan_subdomains . '</span>';
 													
+													/*
 													$permalink = add_query_arg(array(
 														
 														'output' => 'widget',
@@ -140,6 +141,7 @@
 														echo'</div>'.PHP_EOL;
 														
 													echo'</div>'.PHP_EOL;
+													*/
 												}
 												elseif( $domain_type == 'domain' ){
 													

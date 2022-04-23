@@ -1040,7 +1040,6 @@ class LTPLE_Domains {
 			echo '<a href="'. $this->parent->urls->domains . '"><span class="fa fa-network-wired" aria-hidden="true"></span> Connected Domains</a>';
 
 		echo'</li>';
-
 	}
 
 	public function collect_user_information(){
@@ -1376,7 +1375,7 @@ class LTPLE_Domains {
 			
 			$md5 = md5(rand());
 			
-			$table .='<a data-toggle="collapse" data-target="#section_'.$md5.'" class="plan_section">Domain Name <i class="glyphicon glyphicon-chevron-down pull-right"></i></a>';
+			$table .='<a data-toggle="collapse" data-target="#section_'.$md5.'" class="plan_section">Domain Name <i class="fas fa-angle-down pull-right" style="font-size:25px;"></i></a>';
 			
 			$table .= '<div id="section_'.$md5.'" class="panel-collapse collapse">';
 				
