@@ -265,6 +265,8 @@ class LTPLE_Domains {
 			$url .= '?' . $_SERVER['QUERY_STRING'];
 		}
 		
+		$url = remove_query_arg('pr',$url);
+		
 		if( $url != $this->parent->urls->current ){
 			
 			wp_redirect($url);
