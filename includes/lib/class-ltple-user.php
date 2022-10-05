@@ -45,7 +45,7 @@ class LTPLE_Domains_User {
 		
 		$user_plan = $this->parent->plan->get_user_plan_info($this->parent->user->ID);
 	
-		if( !empty($user_plan['holder']) ){
+		if( !empty($user_plan['holder']) && $user_plan['holder'] == $this->parent->user->ID ){
 			
 			$users = $this->parent->plan->get_license_users($user_plan['holder']);
 			

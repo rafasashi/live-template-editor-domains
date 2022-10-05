@@ -82,66 +82,20 @@
 												
 												if( $domain_type == 'subdomain' ){
 													
-													$license_holder_subdomains 	= count($this->parent->user->domains->get_license_holder_domain_list('subdomain'));
-													$total_plan_subdomains 		= $this->parent->user->domains->get_total_plan_subdomains();
+													if( $holder_domains = $this->parent->user->domains->get_license_holder_domain_list('subdomain')){
+														
+														$domains = $holder_domains;
+														
+														$total_plan = $this->parent->user->domains->get_total_plan_subdomains();
+													}
+													else{
+														
+														$total_plan = count($domains);
+													}
 													
 													echo'<span style="float:left;margin:3px 5px 0 0;display:inline-block;font-size:15px;font-weight:bold;">Subdomains</span>';
 													
-													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $license_holder_subdomains . ' / ' . $total_plan_subdomains . '</span>';
-													
-													/*
-													$permalink = add_query_arg(array(
-														
-														'output' => 'widget',
-														'action' => 'addSubdomain',
-														'_' 	 => time(),
-														
-													),$this->parent->urls->current);
-													
-													$modal_id = 'modal_'.md5($permalink);
-
-													echo'<button id="addSubdomain" type="button" class="pull-right btn btn-sm btn-success" data-toggle="modal" data-target="#'.$modal_id.'">Add</span></button>';
-
-													echo'<div class="modal fade" id="'.$modal_id.'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'.PHP_EOL;
-														
-														echo'<div class="modal-dialog modal-lg" role="document">'.PHP_EOL;
-															
-															echo'<div class="modal-content">'.PHP_EOL;
-															
-																echo'<div class="modal-header">'.PHP_EOL;
-																	
-																	echo'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'.PHP_EOL;
-																	
-																	echo'<h4 class="modal-title text-left" id="myModalLabel">Create a subdomain</h4>'.PHP_EOL;
-																
-																echo'</div>'.PHP_EOL;
-															  
-																echo'<div class="modal-body">'.PHP_EOL;
-																
-																	if( $this->parent->user->remaining_days > 0 ) {
-																		
-																		if( $total_plan_subdomains > $license_holder_subdomains ){
-																			
-																			echo'<iframe data-src="'.$permalink.'" style="width: 100%;position:relative;bottom: 0;border:0;height: 450px;overflow: hidden;"></iframe>';											
-																		}
-																		else{
-																			
-																			echo'You cannot add more subdomains, please contact the support team...';
-																		}
-																	}
-																	else{
-																		
-																		echo'License expired, please contact the support team...';
-																	}
-
-																echo'</div>'.PHP_EOL;
-															  
-															echo'</div>'.PHP_EOL;
-															
-														echo'</div>'.PHP_EOL;
-														
-													echo'</div>'.PHP_EOL;
-													*/
+													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-primary">' . count($domains) . ' / ' . $total_plan . '</span>';
 												}
 												elseif( $domain_type == 'domain' ){
 													
@@ -150,7 +104,7 @@
 																										
 													echo'<span style="float: left;margin: 3px 5px 0 0;display: inline-block;font-size: 15px;font-weight: bold;">Connected Domains</span>';
 													
-													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-default">' . $license_holder_domains . ' / ' . $total_plan_domains . '</span>';
+													echo' <span style="float:left;margin:4px;font-size:12px;" class="label label-primary">' . $license_holder_domains . ' / ' . $total_plan_domains . '</span>';
 													
 													$permalink = 'connect-domain';
 													
@@ -202,12 +156,12 @@
 										
 										if( !empty($domains) ){
 											
-											foreach($domains as $domain){
+											foreach($domains as $domain ){
 												
 												echo'<tr>';
 													echo'<td>';
 													
-														echo '<a href="http://' . $domain->post_title . '" target="_blank">' . $domain->post_title . '</a>';
+														echo '<a href="' . $this->parent->request->proto . $domain->post_title . '" target="_blank">' . $domain->post_title . ( intval($domain->post_author) != $this->parent->user->ID ? ' <span class="label label-default" style="margin-left:10px;font-size:10px;">managed</span>' : '' ) . '</a>';
 													
 													echo'</td>';
 												echo'</tr>';
@@ -397,19 +351,3 @@
 		echo'</div>	';
 
 	echo'</div>';
-	
-	?>
-	
-	<script>
-
-		;(function($){		
-			
-			$(document).ready(function(){
-
-			
-				
-			});
-			
-		})(jQuery);
-
-	</script>
