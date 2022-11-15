@@ -873,7 +873,7 @@ class LTPLE_Domains {
 	
 	public function get_sidebar_content($sidebar,$currentTab,$output){
 		
-		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fa fa-network-wired"></span> Domains</a></li>';
+		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fas fa-sign"></span> Domains</a></li>';
 
 		//$sidebar .= '<li'.( $currentTab == 'urls' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '?tab=urls">Urls & Pages</a></li>';
 		
@@ -1039,7 +1039,7 @@ class LTPLE_Domains {
 
 		echo'<li style="position:relative;background:#182f42;">';
 			
-			echo '<a href="'. $this->parent->urls->domains . '"><span class="fa fa-network-wired" aria-hidden="true"></span> Connected Domains</a>';
+			echo '<a href="'. $this->parent->urls->domains . '"><span class="fas fa-sign" aria-hidden="true"></span> Connected Domains</a>';
 
 		echo'</li>';
 	}

@@ -58,7 +58,7 @@
 
 									echo '<p>';
 									
-										echo 'In this section you can manage your domains. Create a new subdomain, connect an existing domain or remove one.';
+										echo 'In this section you can manage your domains and subdomains.';
 									
 									echo'</p>';
 								
