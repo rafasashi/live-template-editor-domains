@@ -203,6 +203,22 @@ class LTPLE_Domains {
 		
 		parse_str($_SERVER['QUERY_STRING'],$args);
 		
+		// is wp-admin
+		
+		$url = parse_url($this->parent->urls->current);
+		
+		if( !empty($url['path']) ){
+			
+			$path = preg_replace('/^\/+|\/+$/', '',$url['path']);
+			
+			$folders = explode('/',$path);
+			
+			if( $folders[0] == 'wp-admin' ){
+				
+				return;
+			}
+		}
+		
 		// is editor preview
 
 		if( !empty($args['preview']) ){
