@@ -54,12 +54,12 @@ class LTPLE_Domains {
 		register_activation_hook( $this->file, array( $this, 'install' ) );
 		
 		// Load frontend JS & CSS
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ), 10 );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10 );
+		add_action('wp_enqueue_scripts', array( $this, 'enqueue_styles' ), 10 );
+		add_action('wp_enqueue_scripts', array( $this, 'enqueue_scripts' ), 10 );
 
 		// Load admin JS & CSS
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 10, 1 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ), 10, 1 );
+		add_action('admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 10, 1 );
+		add_action('admin_enqueue_scripts', array( $this, 'admin_enqueue_styles' ), 10, 1 );
 		
 		$this->settings = new LTPLE_Domains_Settings( $this->parent );
 		
@@ -69,15 +69,15 @@ class LTPLE_Domains {
 
 			// Load API for generic admin functions
 			
-			add_action( 'wp_head', array( $this, 'header') );
-			add_action( 'wp_footer', array( $this, 'footer') );
+			add_action('wp_head', array( $this, 'header') );
+			add_action('wp_footer', array( $this, 'footer') );
 		}
 		
 		// Handle localisation
 		
 		$this->load_plugin_textdomain();
 		
-		add_action( 'init', array( $this, 'load_localisation' ), 0 );
+		add_action('init', array( $this, 'load_localisation' ), 0 );
 
 		//init addon 
 		
@@ -89,19 +89,19 @@ class LTPLE_Domains {
 		
 		// site name
 		
-		add_filter( 'ltple_site_name',array($this,'filter_site_name'),99999,1);
+		add_filter('ltple_site_name',array($this,'filter_site_name'),99999,1);
 
 		// social icons in profile
 		
-		add_action( 'ltple_before_social_icons', array( $this, 'get_social_icons'));		
+		add_action('ltple_before_social_icons', array( $this, 'get_social_icons'));		
 		
 		// Custom template path
 		
-		add_filter( 'template_include', array( $this, 'template_path'), 1 );	
+		add_filter('template_include', array( $this, 'template_path'), 1 );	
 			
 		// add user attributes
 		
-		add_filter( 'ltple_user_loaded', array( $this, 'add_user_attribute'));	
+		add_filter('ltple_user_loaded', array( $this, 'add_user_attribute'));	
 		
 		// add panel shortocode
 
@@ -109,54 +109,54 @@ class LTPLE_Domains {
 
 		// add panel url
 		
-		add_filter( 'ltple_urls', array( $this, 'get_panel_url'));	
+		add_filter('ltple_urls', array( $this, 'get_panel_url'));	
 		
 		// add link to theme menu
 		
-		//add_filter( 'ltple_view_my_profile', array( $this, 'add_theme_menu_link'),9);	
+		//add_filter('ltple_view_my_profile', array( $this, 'add_theme_menu_link'),9);	
 		
-		add_filter( 'ltple_collect_user_information', array( $this, 'collect_user_information'));	
+		add_filter('ltple_collect_user_information', array( $this, 'collect_user_information'));	
 		
-		add_filter( 'ltple_profile_completeness', array( $this, 'get_profile_completeness'),1,3);	
+		add_filter('ltple_profile_completeness', array( $this, 'get_profile_completeness'),1,3);	
 				
 		// add layer fields
 		
-		add_filter( 'ltple_account_options', array( $this, 'add_account_options'),10,1);
-		add_filter( 'ltple_account_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
-		add_action( 'ltple_save_layer_fields', array( $this, 'save_layer_fields' ),10,1);			
+		add_filter('ltple_account_options', array( $this, 'add_account_options'),10,1);
+		add_filter('ltple_account_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
+		add_action('ltple_save_layer_fields', array( $this, 'save_layer_fields' ),10,1);			
 		
 		// add layer colums
 		
-		add_filter( 'ltple_layer_option_columns', array( $this, 'add_layer_columns'));
+		add_filter('ltple_layer_option_columns', array( $this, 'add_layer_columns'));
 		
-		add_filter( 'ltple_layer_column_content', array( $this, 'add_layer_column_content'),10,2);
+		add_filter('ltple_layer_column_content', array( $this, 'add_layer_column_content'),10,2);
 		
 		// handle plan
 		
-		add_filter( 'ltple_subscription_plan_info', array( $this, 'get_subscription_plan_info'),10,2);	
+		add_filter('ltple_subscription_plan_info', array( $this, 'get_subscription_plan_info'),10,2);	
 		
-		add_filter( 'ltple_api_layer_plan_option', array( $this, 'add_api_layer_plan_option'),10,1);	
-		add_filter( 'ltple_api_layer_plan_option_total', array( $this, 'add_api_layer_plan_option_total'),10,2);
+		add_filter('ltple_api_layer_plan_option', array( $this, 'add_api_layer_plan_option'),10,1);	
+		add_filter('ltple_api_layer_plan_option_total', array( $this, 'add_api_layer_plan_option_total'),10,2);
 		
-		add_filter( 'ltple_plan_table', array( $this, 'add_plan_table_attributes'),10,2);
-		add_filter( 'ltple_plan_subscribed', array( $this, 'handle_subscription_plan'),10);
+		add_filter('ltple_plan_table', array( $this, 'add_plan_table_attributes'),10,2);
+		add_filter('ltple_plan_subscribed', array( $this, 'handle_subscription_plan'),10);
 		
-		add_filter( 'ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
-		add_filter( 'ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
+		add_filter('ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
+		add_filter('ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
 		
-		add_filter( 'ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
+		add_filter('ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
 			
-		add_action( 'ltple_user-page_link', array( $this, 'filter_user_page_link'),10,2);	
+		add_action('ltple_user-page_link', array( $this, 'filter_user_page_link'),10,2);	
 		
-		add_action( 'ltple_user-product_link', array( $this, 'filter_user_product_link'),10,2);	
+		add_action('ltple_user-product_link', array( $this, 'filter_user_product_link'),10,2);	
 						
-		add_action( 'ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
-			
+		add_action('ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
+		
 		$this->add_star_triggers();
 		
 		// addon post types
 		
-		$this->parent->register_post_type( 'user-domain', __( 'User domains', 'live-template-editor-client' ), __( 'User domains', 'live-template-editor-client' ), '', array(
+		$this->parent->register_post_type('user-domain', __( 'User domains', 'live-template-editor-client' ), __( 'User domains', 'live-template-editor-client' ), '', array(
 
 			'public' 				=> false,
 			'publicly_queryable' 	=> false,
@@ -177,6 +177,61 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 
+		$this->parent->register_post_type('user-page', __( 'Pages', 'live-template-editor-client' ), __( 'Page', 'live-template-editor-client' ), '', array(
+
+			'public' 				=> true,
+			'publicly_queryable' 	=> true,
+			'exclude_from_search' 	=> true,
+			'show_ui' 				=> true,
+			'show_in_menu' 			=> false,
+			'show_in_nav_menus' 	=> false,
+			'query_var' 			=> true,
+			'can_export' 			=> true,
+			'rewrite' 				=> false,
+			'capability_type' 		=> 'post', 
+			'has_archive' 			=> true,
+			'hierarchical' 			=> false,
+			'show_in_rest' 			=> false,
+			//'supports' 			=> array( 'title', 'editor', 'author', 'excerpt', 'comments', 'thumbnail' ),
+			'supports' 				=> array('title','author'),
+			'menu_position' 		=> 5,
+			'menu_icon' 			=> 'dashicons-admin-post',
+		)); 
+		
+		add_filter('wp_loaded',function(){
+		
+			register_taxonomy_for_object_type('layer-type','user-page');
+		});
+
+		add_filter('manage_user-page_posts_columns', array( $this->parent->layer, 'set_user_layer_columns'),99999);
+		add_action('manage_user-page_posts_custom_column', array( $this->parent->layer, 'add_layer_type_column_content'), 10, 2);		
+		
+		add_filter( 'preview_post_link', array($this,'filter_preview_layer_link'),99999,2 );
+		
+		
+		add_filter('ltple_layer_storages',function($storages){ 
+			
+			$storages['user-page'] = 'Web Page';
+			
+			return $storages;
+		});	
+		
+		add_filter('ltple_website_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
+		
+			if( !empty($storage_count['user-page']) ){
+			
+				$sidebar .=  '<li'.( $currentTab == 'user-page' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->profile . '?list=user-page"><span class="fa fa-layer-group"></span> Web Pages</a></li>';
+			}
+		
+			return $sidebar;
+		
+		},0,3);	
+		
+		add_filter('ltple_user-page_layer_area',function(){ 
+			
+			return 'frontend';
+		});
+		
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 		// sitemaps
@@ -195,30 +250,42 @@ class LTPLE_Domains {
 		
 		add_filter('pre_get_posts',array($this,'filter_feed_query'),99999999,1);
 		
+		//Add Custom API Endpoints
+		
+		add_action('rest_api_init', function(){
+			
+			register_rest_route( 'ltple-list/v1', '/user-page/', array(
+				
+				'methods' 	=> 'GET',
+				'callback' 	=> array($this,'get_user_page_rows'),
+				'permission_callback' => '__return_true',
+			));
+		});
+		
 	} // End __construct ()
+	
+	public function filter_preview_layer_link($url,$post){
+
+		if( $post->post_type == 'user-page' && $post->post_status != 'publish' ){
+			
+			$url = add_query_arg( array(
+				
+				'p' 		=> $post->ID,
+				'post_type' => $post->post_type,
+				'preview' 	=> 'true',
+				
+			),$this->parent->urls->home);
+		}
+
+		return $url;
+	}
 	
 	public function redirect_profile(){
 
 		// parse query string
 		
 		parse_str($_SERVER['QUERY_STRING'],$args);
-		
-		// is wp-admin
-		
-		$url = parse_url($this->parent->urls->current);
-		
-		if( !empty($url['path']) ){
-			
-			$path = preg_replace('/^\/+|\/+$/', '',$url['path']);
-			
-			$folders = explode('/',$path);
-			
-			if( $folders[0] == 'wp-admin' ){
-				
-				return;
-			}
-		}
-		
+
 		// is editor preview
 
 		if( !empty($args['preview']) ){
@@ -534,7 +601,7 @@ class LTPLE_Domains {
 		return $domain;
 	}
 	
-	public function init_domain(){	
+	public function init_domain(){
 		
 		// get domain	
 		
@@ -641,6 +708,22 @@ class LTPLE_Domains {
 				echo 'This domain is not registered yet...';
 				exit;
 			}
+		}
+
+		// set administrator capabilities 
+		
+		if( $role = get_role('administrator') ){
+		
+			empty($role->capabilities['edit_user-page']) ? $role->add_cap('edit_user-page') : true;	
+			empty($role->capabilities['edit_user-pages']) ? $role->add_cap('edit_user-pages') : true;
+			empty($role->capabilities['edit_other_user-pages']) ? $role->add_cap('edit_other_user-pages') : true;
+		}
+
+		// set subscriber capabilities 
+		
+		if( $role = get_role('subscriber') ){
+		
+			empty($role->capabilities['edit_user-page']) ? $role->add_cap('edit_user-page') : true;
 		}
 	}
 	
@@ -958,7 +1041,7 @@ class LTPLE_Domains {
 				
 					echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
 						
-						$default_url = 'None';
+						$default_url = 'None / Draft';
 						
 						if( $this->parent->user->layer->post_type != 'user-page' ){
 						
@@ -1013,7 +1096,7 @@ class LTPLE_Domains {
 					
 					$domainPath = trailingslashit($domainPath);
 					
-					echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" />';
+					echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" required="required" />';
 				}
 				elseif( $this->parent->user->layer->post_status == 'publish' ){
 					
@@ -1071,7 +1154,7 @@ class LTPLE_Domains {
 			if( $user_subdomains === 0 ){
 			
 				$total_plan_subdomains = $this->parent->user->domains->get_total_plan_subdomains();
-														
+				
 				if( $total_plan_subdomains > 0 ){		
 
 					$license_holder_subdomains = count($this->parent->user->domains->get_license_holder_domain_list('subdomain'));
@@ -1683,6 +1766,41 @@ class LTPLE_Domains {
 		return $query;
 	}
 
+	public function get_user_page_rows($request) {
+		
+		$page_rows = [];
+		
+		if( $posts = get_posts(array(
+		
+			'post_type' 		=> 'user-page',
+			'post_status' 		=> array('publish','draft'),
+			'author' 			=> $this->parent->user->ID,
+			'posts_per_page'	=> -1,
+			
+		))){
+
+			foreach( $posts as $i => $post ){
+				
+				$layer_type = $this->parent->layer->get_layer_type($post);
+				
+				if( !empty($layer_type->name) ){
+				
+					$row = [];
+				
+					$row['preview'] 	= '<div class="thumb_wrapper" style="background:url(' . $this->parent->layer->get_thumbnail_url($post) . ');background-size:cover;background-repeat:no-repeat;background-position:center center;width:100%;display:inline-block;"></div>';
+					$row['name'] 		= ucfirst($post->post_title);
+					$row['type'] 		= $layer_type->name;
+					$row['status'] 		= $this->parent->layer->parse_layer_status($post->post_status);
+					$row['action'] 		= $this->parent->layer->get_action_buttons($post,$layer_type);
+					
+					$page_rows[] = $row;
+				}
+			}
+		}
+		
+		return $page_rows;
+	}
+	
 	/**
 	 * Main LTPLE_Domains Instance
 	 *

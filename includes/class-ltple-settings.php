@@ -53,11 +53,26 @@ class LTPLE_Domains_Settings {
 		
 		// add menu
 		
-		add_action( 'ltple_admin_menu' , array( $this, 'add_menu_items' ) );
-
-		// add tabs
+		add_action('ltple_admin_menu' , array( $this, 'add_menu_items' ) );
 		
-		add_filter( 'ltple_admin_tabs', array( $this, 'add_tabs'), 1 );		
+		add_filter('ltple_admin_tabs_user-contents', function($tabs){
+			
+			$tabs['user-domain'] = array(
+			
+				'tab'  		=> 'Domains', 	
+				'name' 		=> 'Domains', 	
+				'in_menu' 	=> true,
+			);	
+			
+			$tabs['user-page'] = array(
+			
+				'tab'  		=> 'Pages', 	
+				'name' 		=> 'Pages', 	
+				'in_menu' 	=> true,
+			);
+
+			return $tabs;
+		});
 	}
 	
 	public function plugin_info(){
@@ -157,12 +172,5 @@ class LTPLE_Domains_Settings {
 			'edit.php?post_type=post'
 		);
 		*/
-	}
-	
-	public function add_tabs() {
-		
-		//dump($this->parent->settings->tabs);
-		
-		$this->parent->settings->tabs['user-contents']['user-domain'] = array( 'name' => 'Domains');
 	}
 }

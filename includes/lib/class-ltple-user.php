@@ -186,7 +186,7 @@ class LTPLE_Domains_User {
 			
 			$domainPath = sanitize_text_field($_POST['domainUrl']['domainPath']);
 			
-			if( is_numeric($domainId) ){
+			if( is_numeric($domainId) && !empty($domainPath) ){
 				
 				foreach( $this->list as $domain_type => $domains ){
 					
@@ -224,14 +224,23 @@ class LTPLE_Domains_User {
 					}
 				}
 				
-				if( $domainId == -1 && !empty($domainPath) ){
+				if( $domainId == -1 ){
 					
 					// update post slug
 					
 					wp_update_post( array(
 					
-						'ID' 		=> $this->parent->user->layer->ID,
-						'post_name'	=> trailingslashit($domainPath),
+						'ID' 			=> $this->parent->user->layer->ID,
+						'post_name'		=> trailingslashit($domainPath),
+						'post_status'	=> 'draft',
+					));
+				}
+				else{
+					
+					wp_update_post( array(
+					
+						'ID' 			=> $this->parent->user->layer->ID,
+						'post_status'	=> 'publish',
 					));
 				}
 			}
