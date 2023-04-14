@@ -176,7 +176,7 @@ class LTPLE_Domains {
 			'menu_position' 		=> 5,
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
-
+		
 		$this->parent->register_post_type('user-page', __( 'Pages', 'live-template-editor-client' ), __( 'Page', 'live-template-editor-client' ), '', array(
 
 			'public' 				=> true,
@@ -215,6 +215,14 @@ class LTPLE_Domains {
 			
 			return $storages;
 		});	
+		
+		add_filter('ltple_dashboard_manage_sidebar',function($section,$currentTab,$output){
+
+			$section .= '<li><a href="' . $this->parent->urls->profile .'?list=user-page"><span class="fa fa-globe"></span> Hosted Pages</a></li>';
+	
+			return $section;
+			
+		},10,3);
 		
 		add_filter('ltple_website_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
 		
@@ -709,22 +717,6 @@ class LTPLE_Domains {
 				exit;
 			}
 		}
-
-		// set administrator capabilities 
-		
-		if( $role = get_role('administrator') ){
-		
-			empty($role->capabilities['edit_user-page']) ? $role->add_cap('edit_user-page') : true;	
-			empty($role->capabilities['edit_user-pages']) ? $role->add_cap('edit_user-pages') : true;
-			empty($role->capabilities['edit_other_user-pages']) ? $role->add_cap('edit_other_user-pages') : true;
-		}
-
-		// set subscriber capabilities 
-		
-		if( $role = get_role('subscriber') ){
-		
-			empty($role->capabilities['edit_user-page']) ? $role->add_cap('edit_user-page') : true;
-		}
 	}
 	
 	public function set_user_disclaimer(){
@@ -1031,7 +1023,7 @@ class LTPLE_Domains {
 	
 	public function get_edit_layer_url(){
 		
-		if( $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
+		if( $this->parent->user->layer == 'user-page' && $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
 			
 			echo'<div id="layer_url" style="margin:15px 0 0 0;padding:15px 0 0 0;border-top:1px solid #eee;">';
 				
