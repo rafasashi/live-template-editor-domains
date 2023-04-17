@@ -1474,6 +1474,24 @@ class LTPLE_Domains {
 				
 				$table .= '<table id="plan_domains" class="able-striped">';
 
+					$table .= '<tr>';
+				
+						$table .= '<th style="width:80%;">';	
+							
+							$table .= 'Type';
+							
+						$table .= '</th>';
+
+						$table .= '<th style="width:20%;text-align:center;">';							
+				
+							$table .= 'Limit';
+							
+							//$table .= 'Usage'; // TODO pass usage in billing info
+							
+						$table .= '</th>';	
+					
+					$table .= '</tr>';
+					
 					if( $total_domain_amount > 0 ){
 					
 						$table .= '<tr>';
