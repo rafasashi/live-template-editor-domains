@@ -1478,15 +1478,19 @@ class LTPLE_Domains {
 					
 						$table .= '<tr>';
 					
-							$table .= '<td>';	
-							
-								$table .= 'Connected domains';
-							
+							$table .= '<td style="width:80%;">';	
+								
+								$table .= '<b>';
+								
+									$table .= 'Connected domains';
+								
+								$table .= '</b>';
+								
 							$table .= '</td>';
 
-							$table .= '<td>';							
+							$table .= '<td style="width:20%;text-align:center;background:#efefef;">';							
 					
-								$table .= '<span class="badge">+'.$total_domain_amount.'</span> connected domain' . ( $total_domain_amount > 1 ? 's' : '');
+								$table .= '<span class="badge">'.$total_domain_amount.'</span>';
 								
 							$table .= '</td>';	
 						
@@ -1497,15 +1501,19 @@ class LTPLE_Domains {
 					
 						$table .= '<tr>';
 					
-							$table .= '<td>';	
+							$table .= '<td style="width:80%;">';	
 							
-								$table .= 'Subdomains';
+								$table .= '<b>';
+							
+									$table .= 'Subdomains';
+									
+								$table .= '</b>';
 							
 							$table .= '</td>';
 
-							$table .= '<td>';							
+							$table .= '<td style="width:20%;text-align:center;background:#efefef;">';							
 					
-								$table .= '<span class="badge">+'.$total_subdomain_amount.'</span> subdomain' . ( $total_subdomain_amount > 1 ? 's' : '');
+								$table .= '<span class="badge">'.$total_subdomain_amount.'</span>';
 								
 							$table .= '</td>';	
 						
