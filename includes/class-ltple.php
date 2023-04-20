@@ -1473,42 +1473,30 @@ class LTPLE_Domains {
 			$table .= '<div id="section_'.$md5.'" class="panel-collapse collapse">';
 				
 				$table .= '<table id="plan_domains" class="able-striped">';
-
-					$table .= '<tr>';
-				
-						$table .= '<th style="width:60%;">';	
-							
-							$table .= 'Type';
-							
-						$table .= '</th>';
-						
-						$table .= '<th style="width:20%;">';	
-							
-							$table .= '<div data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-title="Domains" data-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name.">';
-							
-								$table .= 'Domains';
-							
-								$table .= ' <i class="fas fa-question-circle" style="font-size:13px;"></i>';
-							
-							$table .= '</div>';
-							
-						$table .= '</th>';
-						
-						$table .= '<th style="width:20%;text-align:center;">';							
-				
-							$table .= 'Limit';
-							
-							//$table .= 'Usage'; // TODO pass usage in billing info
-							
-						$table .= '</th>';	
-					
-					$table .= '</tr>';
 					
 					if( $total_domain_amount > 0 ){
+
+						$table .= '<tr>';
+					
+							$table .= '<th style="width:80%;">';	
+								
+								$table .= 'Domains';
+								
+							$table .= '</th>';
+							
+							$table .= '<th style="width:20%;text-align:center;">';							
+					
+								$table .= 'Limit';
+								
+								//$table .= 'Usage'; // TODO pass usage in billing info
+								
+							$table .= '</th>';	
+						
+						$table .= '</tr>';
 					
 						$table .= '<tr>';
 					
-							$table .= '<td style="width:60%;">';	
+							$table .= '<td style="width:80%;">';	
 								
 								$table .= '<b>';
 								
@@ -1516,11 +1504,6 @@ class LTPLE_Domains {
 								
 								$table .= '</b>';
 								
-							$table .= '</td>';
-							
-							$table .= '<td style="width:20%;">';	
-								
-
 							$table .= '</td>';
 							
 							$table .= '<td style="width:20%;text-align:center;background:#efefef;">';							
@@ -1533,20 +1516,34 @@ class LTPLE_Domains {
 					}
 					
 					if( $total_subdomain_amount > 0 ){
-					
+
 						$table .= '<tr>';
 					
-							$table .= '<td style="width:60%;">';	
-							
-								$table .= '<b>';
-							
+							$table .= '<th style="width:80%;">';	
+								
+								$table .= '<div data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-title="Domains" data-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name.">';
+								
 									$table .= 'Subdomains';
-									
-								$table .= '</b>';
+								
+									$table .= ' <i class="fas fa-question-circle" style="font-size:13px;"></i>';
+								
+								$table .= '</div>';
+
+							$table .= '</th>';
 							
-							$table .= '</td>';
-							
-							$table .= '<td style="width:20%;">';	
+							$table .= '<th style="width:20%;text-align:center;">';							
+					
+								$table .= 'Limit';
+								
+								//$table .= 'Usage'; // TODO pass usage in billing info
+								
+							$table .= '</th>';	
+						
+						$table .= '</tr>';
+						
+						$table .= '<tr>';
+
+							$table .= '<td style="width:80%;">';	
 								
 								if( $domains = $this->get_default_domains() ){
 								
