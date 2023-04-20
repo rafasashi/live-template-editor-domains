@@ -1476,12 +1476,24 @@ class LTPLE_Domains {
 
 					$table .= '<tr>';
 				
-						$table .= '<th style="width:80%;">';	
+						$table .= '<th style="width:60%;">';	
 							
 							$table .= 'Type';
 							
 						$table .= '</th>';
-
+						
+						$table .= '<th style="width:20%;">';	
+							
+							$table .= '<div data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-title="Domains" data-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name.">';
+							
+								$table .= 'Domains';
+							
+								$table .= ' <i class="fas fa-question-circle" style="font-size:13px;"></i>';
+							
+							$table .= '</div>';
+							
+						$table .= '</th>';
+						
 						$table .= '<th style="width:20%;text-align:center;">';							
 				
 							$table .= 'Limit';
@@ -1496,7 +1508,7 @@ class LTPLE_Domains {
 					
 						$table .= '<tr>';
 					
-							$table .= '<td style="width:80%;">';	
+							$table .= '<td style="width:60%;">';	
 								
 								$table .= '<b>';
 								
@@ -1505,7 +1517,12 @@ class LTPLE_Domains {
 								$table .= '</b>';
 								
 							$table .= '</td>';
+							
+							$table .= '<td style="width:20%;">';	
+								
 
+							$table .= '</td>';
+							
 							$table .= '<td style="width:20%;text-align:center;background:#efefef;">';							
 					
 								$table .= '<span class="badge">'.$total_domain_amount.'</span>';
@@ -1519,7 +1536,7 @@ class LTPLE_Domains {
 					
 						$table .= '<tr>';
 					
-							$table .= '<td style="width:80%;">';	
+							$table .= '<td style="width:60%;">';	
 							
 								$table .= '<b>';
 							
@@ -1528,7 +1545,19 @@ class LTPLE_Domains {
 								$table .= '</b>';
 							
 							$table .= '</td>';
-
+							
+							$table .= '<td style="width:20%;">';	
+								
+								if( $domains = $this->get_default_domains() ){
+								
+									foreach( $domains as $domain ){
+										
+										$table .= '*.' . $domain . '<br>';
+									}
+								}
+							
+							$table .= '</td>';
+							
 							$table .= '<td style="width:20%;text-align:center;background:#efefef;">';							
 					
 								$table .= '<span class="badge">'.$total_subdomain_amount.'</span>';
