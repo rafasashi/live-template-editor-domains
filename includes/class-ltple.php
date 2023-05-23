@@ -853,7 +853,7 @@ class LTPLE_Domains {
 		},999999);		
 	}
 	
-	public function get_social_icons(){
+	public function get_social_icons($content){
 		
 		if( $this->parent->profile->id > 0 ){
 		
@@ -865,15 +865,17 @@ class LTPLE_Domains {
 					
 					if( !empty($domain->post_title) ){
 							
-						echo'<a href="' . $this->parent->request->proto . $domain->post_title . '" style="margin:5px;display:inline-block;" ref="dofollow">';
+						$content .= '<a href="' . $this->parent->request->proto . $domain->post_title . '" style="margin:5px;display:inline-block;" ref="dofollow">';
 							
-							echo'<img src="' . $this->parent->settings->options->social_icon . '" style="height:30px;width:30px;border-radius:250px;" />';
+							$content .= '<img src="' . $this->parent->settings->options->social_icon . '" style="height:30px;width:30px;border-radius:250px;" />';
 							
-						echo'</a>';
+						$content .= '</a>';
 					}
 				}
 			}
 		}
+		
+		return $content;
 	}
 	
 	public function header(){
