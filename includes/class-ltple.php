@@ -16,6 +16,7 @@ class LTPLE_Domains {
 	var $enable_domains 	= 'off';
 	var $enable_subdomains 	= 'off';
 	var $default_domains 	= null;
+	var $private_domains	= null;
 	var $disclaimer			= '';
 	var $currentDomain		= null;
 	var $userDomains		= array();
@@ -119,8 +120,8 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_profile_completeness', array( $this, 'get_profile_completeness'),1,3);	
 				
-		// add layer fields
-		
+		// add fields
+
 		add_filter('ltple_account_options', array( $this, 'add_account_options'),10,1);
 		add_filter('ltple_account_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
 		add_action('ltple_save_layer_fields', array( $this, 'save_layer_fields' ),10,1);			
@@ -150,7 +151,9 @@ class LTPLE_Domains {
 		
 		add_action('ltple_user-product_link', array( $this, 'filter_user_product_link'),10,2);	
 						
-		add_action('ltple_edit_layer_title', array( $this, 'get_edit_layer_url'));
+		add_action('ltple_edit_layer_title', array( $this, 'add_layer_url_input'));
+		
+		add_action('ltple_current_theme_id', array( $this, 'get_domain_theme_id'),10,2);
 		
 		$this->add_star_triggers();
 		
@@ -218,22 +221,47 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_dashboard_manage_sidebar',function($section,$currentTab,$output){
 
-			$section .= '<li><a href="' . $this->parent->urls->profile .'?list=user-page"><span class="fa fa-globe"></span> Hosted Pages</a></li>';
+			$section .= '<li><a href="'.$this->parent->urls->domains . '"><span class="fa fa-globe"></span> Website</a></li>';
 	
 			return $section;
 			
 		},10,3);
 		
+		add_filter('ltple_profile_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
+				
+			// website settings
+
+			$section = apply_filters('ltple_website_settings_sidebar','',$currentTab,$storage_count);
+					
+			if( !empty($section) ){
+
+				$sidebar .= '<li class="gallery_type_title">Webite</li>';
+				
+				$sidebar .= $section;
+			}
+			
+			return $sidebar;
+			
+		},9999,3);
+		
+		add_filter('ltple_website_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
+			
+			$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fas fa-sign"></span> Domain Name</a></li>';
+		
+			return $sidebar;
+			
+		},0,3);
+		
 		add_filter('ltple_website_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
 		
 			if( !empty($storage_count['user-page']) ){
 			
-				$sidebar .=  '<li'.( $currentTab == 'user-page' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->profile . '?list=user-page"><span class="fa fa-layer-group"></span> Web Pages</a></li>';
+				$sidebar .=  '<li'.( $currentTab == 'user-page' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->profile . '?list=user-page"><span class="fas fa-file-alt"></span> Static Pages</a></li>';
 			}
 		
 			return $sidebar;
 		
-		},0,3);	
+		},99,3);	
 		
 		add_filter('ltple_user-page_layer_area',function(){ 
 			
@@ -271,7 +299,7 @@ class LTPLE_Domains {
 		});
 		
 	} // End __construct ()
-	
+
 	public function filter_preview_layer_link($url,$post){
 
 		if( $post->post_type == 'user-page' && $post->post_status != 'publish' ){
@@ -390,13 +418,38 @@ class LTPLE_Domains {
 		return $this->default_domains;
 	}
 	
+	public function get_private_domains(){
+		 
+		if( is_null($this->private_domains) ){
+		
+			$this->private_domains = array();
+		
+			$domains = explode(PHP_EOL,get_option( $this->parent->_base . 'private_domains', '' ));
+			
+			if(!empty($domains)){
+				
+				foreach( $domains as $domain ){
+					
+					$domain = trim($domain);
+					
+					if( !empty($domain) ){
+						
+						$this->private_domains[] = $domain;
+					}
+				}
+			}
+		}
+		
+		return $this->private_domains;
+	}
+	
 	public function get_domain_type( $domain ){
 		
 		$domain_type = 'domain';
 		
 		// get shared domains
 		
-		$default_domains = $this->get_default_domains();
+		$default_domains = array_merge($this->get_default_domains(),$this->get_private_domains());
 		
 		foreach( $default_domains as $default_domain ){
 		
@@ -571,151 +624,172 @@ class LTPLE_Domains {
 	
 	public function get_domain($domain_name=''){
 		
-		$domain = null;
-		
-		if( $domains = get_posts(array(
-		
-			'post_type' => 'user-domain',
-			'title' 	=> $domain_name,
-		
-		)) ){
-		
-			$domain = $domains[0];
+		if( !empty($domain_name) ){
 			
-			// get type
+			if( $domains = get_posts(array(
 			
-			$domain->type = $this->get_domain_type( $domain->post_title );
+				'post_type' => 'user-domain',
+				'title' 	=> $domain_name,
 			
-			// is primary domain
-			
-			$domain->is_primary = false;
-			
-			$user_domains = $this->get_user_domain_list( $domain->post_author );
-			
-			if( !empty($user_domains[$domain->type]) ){
-			
-				foreach( $user_domains[$domain->type] as $user_domain ){
+			))){
+				
+				foreach( $domains as $domain ){
 					
-					if( $user_domain->post_title == $domain_name ){
+					if( $domain->post_title == $domain_name ){
 						
-						$domain->is_primary = $user_domain->is_primary;
+						// get type
 						
-						break;
+						$domain->type = $this->get_domain_type( $domain->post_title );
+						
+						// is primary domain
+						
+						$domain->is_primary = false;
+						
+						$user_domains = $this->get_user_domain_list( $domain->post_author );
+						
+						if( !empty($user_domains[$domain->type]) ){
+						
+							foreach( $user_domains[$domain->type] as $user_domain ){
+								
+								if( $user_domain->post_title == $domain_name ){
+									
+									$domain->is_primary = $user_domain->is_primary;
+									
+									break;
+								}
+							}
+						}
+						
+						return $domain;
 					}
 				}
 			}
 		}
 		
-		return $domain;
+		return false;
+	}
+	
+	public function get_current_domain(){
+		
+		if( is_null($this->currentDomain) ){
+
+			$domain_name = false;
+			
+			if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' && !empty($_GET['domain']) ){
+				
+				$domain_name = sanitize_text_field($_GET['domain']);
+			}
+			elseif( defined('REW_LTPLE') && in_array(REW_LTPLE,['domain','subdomain']) ){
+
+				$domain_name = defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'];
+			}
+			
+			if( $domain = $this->get_domain($domain_name) ){ 
+			
+				$domain->urls = $this->get_domain_urls($domain->ID);
+			}
+			
+			$this->currentDomain = $domain;
+		}
+		
+		return $this->currentDomain;
 	}
 	
 	public function init_domain(){
 		
 		// get domain	
 		
-		$domain_name = false;
-		
-		if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' && !empty($_GET['domain']) ){
+		if( $domain = $this->get_current_domain() ){
 			
-			$domain_name = $_GET['domain'];
-		}
-		elseif( defined('REW_LTPLE') && in_array(REW_LTPLE,['domain','subdomain']) ){
-
-			$domain_name = defined('REW_SITE') ? REW_SITE : $_SERVER['HTTP_HOST'];
-		}
-		
-		if( !empty($domain_name) ){
+			// domain owner
 			
-			if( $this->currentDomain = $this->get_domain($domain_name) ){
-					
-				// get request uri
+			$user_id = intval($domain->post_author);
+			
+			// request uri
 
-				$request_uri = false;
+			$request_uri = false;
+			
+			if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' ){
 				
-				if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' ){
-					
-					$prefix = '/' . $this->parent->profile->slug . '/' . $this->currentDomain->post_author;
-					
-					if( strpos($_SERVER['REQUEST_URI'],$prefix) === 0 ){
-					
-						$request_uri = str_replace( $prefix, '' , $_SERVER['REQUEST_URI'] );
-					}
-				}
-				else{
-					
-					$request_uri = $_SERVER['REQUEST_URI'];
-				}
+				$prefix = '/' . $this->parent->profile->slug . '/' . $user_id;
 				
-				if( is_string($request_uri) ){
-					
-					list($this->uri) = explode('?', $request_uri);
-					
-					// get urls
+				if( strpos($_SERVER['REQUEST_URI'],$prefix) === 0 ){
 				
-					if( $this->currentDomain->urls = $this->get_domain_urls($this->currentDomain->ID) ){
-
-						// get path
-						
-						foreach( $this->currentDomain->urls as $layerId => $path ){
-							
-							if( '/' . $path == $this->uri ){
-								
-								if( $layer = get_post($layerId) ){
-
-									// check license
-									
-									if( $this->parent->users->get_user_remaining_days($this->currentDomain->post_author) > 0 ) {
-										
-										$this->set_user_layer($layer);
-									}
-									elseif( !empty($this->parent->user->ID) && intval($this->currentDomain->post_author) == $this->parent->user->ID ){
-										
-										echo 'License expired, please renew your subscription.';
-									}
-									else{
-										
-										include($this->parent->views . '/profile/card.php');
-									}
-
-									exit;
-								}
-							}
-						}
-						
-						if( $this->currentDomain->is_primary === true ){
-							
-							$this->set_user_profile();
-						}
-						else{
-							
-							include($this->parent->views . '/profile/card.php');
-						}
-					}
-					elseif( $this->currentDomain->is_primary === true ){
-						
-						$this->set_user_profile();
-					}
-					elseif( !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/' ){
-						
-						wp_redirect($this->parent->urls->home);
-						exit;
-					}
-					else{
-						
-						include($this->parent->views . '/profile/card.php');					
-					}
-				}
-				else{
-					
-					echo 'Wrong domain request uri...';
-					exit;					
+					$request_uri = str_replace( $prefix, '' , $_SERVER['REQUEST_URI'] );
 				}
 			}
 			else{
 				
-				echo 'This domain is not registered yet...';
-				exit;
+				$request_uri = $_SERVER['REQUEST_URI'];
 			}
+			
+			if( is_string($request_uri) ){
+				
+				list($this->uri) = explode('?', $request_uri);
+				
+				if( !empty($domain->urls) ){
+
+					// get path
+					
+					foreach( $domain->urls as $layerId => $path ){
+						
+						if( '/' . $path == $this->uri ){
+							
+							if( $layer = get_post($layerId) ){
+
+								// check license
+								
+								if( $this->parent->users->get_user_remaining_days($user_id) > 0 ) {
+									
+									$this->set_user_layer($layer);
+								}
+								elseif( !empty($this->parent->user->ID) && intval($user_id) == $this->parent->user->ID ){
+									
+									echo 'License expired, please renew your subscription.';
+								}
+								else{
+									
+									include($this->parent->views . '/profile/card.php');
+								}
+
+								exit;
+							}
+						}
+					}
+					
+					if( $domain->is_primary === true ){
+						
+						$this->set_user_profile();
+					}
+					else{
+						
+						include($this->parent->views . '/profile/card.php');
+					}
+				}
+				elseif( $domain->is_primary === true ){
+					
+					$this->set_user_profile();
+				}
+				elseif( !empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/' ){
+					
+					wp_redirect($this->parent->urls->home);
+					exit;
+				}
+				else{
+					
+					include($this->parent->views . '/profile/card.php');					
+				}
+			}
+			else{
+				
+				echo 'Wrong domain request uri...';
+				exit;					
+			}
+		}
+		elseif( !defined('REW_LTPLE') || REW_LTPLE != 'client' ){
+			
+			echo 'This domain is not registered yet...';
+			exit;
 		}
 	}
 	
@@ -723,20 +797,23 @@ class LTPLE_Domains {
 		
 		//check disclaimer
 		
-		if( !$this->parent->user->loggedin && !empty($this->currentDomain) ){
+		if( !$this->parent->user->loggedin ){
 			
-			if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
+			if( $domain = $this->get_current_domain() ){
 				
-				$domainType = $this->get_domain_type( $this->currentDomain->post_title );
-		
-				if( $domainType == 'subdomain' ){
-				
-					$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
-				}
-				
-				if( !empty($this->disclaimer) ){
+				if( empty($_COOKIE['_ltple_disclaimer']) && !$this->parent->inWidget ){
 					
-					include( $this->views . '/disclaimer.php' );
+					$domainType = $this->get_domain_type( $domain->post_title );
+			
+					if( $domainType == 'subdomain' ){
+					
+						$this->disclaimer = get_option($this->parent->_base  . 'subdomain_disclamer');
+					}
+					
+					if( !empty($this->disclaimer) ){
+						
+						include( $this->views . '/disclaimer.php' );
+					}
 				}
 			}
 		}
@@ -764,7 +841,12 @@ class LTPLE_Domains {
 					
 		add_filter('ltple_profile_id', function($id){
 			
-			return intval($this->currentDomain->post_author);
+			if( $domain = $this->get_current_domain() ){
+				
+				$id = intval($domain->post_author);
+			}
+			
+			return $id;
 			
 		},99999);
 		
@@ -790,8 +872,11 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_profile_url', function($url){
 			
-			$url = $this->parent->request->proto . $this->currentDomain->post_title;
-
+			if( $domain = $this->get_current_domain() ){
+			
+				$url = $this->parent->request->proto . $domain->post_title;
+			}
+			
 			return $url;
 			
 		},99999);
@@ -911,7 +996,7 @@ class LTPLE_Domains {
 				
 				if($this->parent->user->loggedin){
 					
-					add_action('ltple_dashboard_sidebar',array($this->parent->dashboard,'get_sidebar'),10,3);
+					add_action('ltple_domains_sidebar',array($this->parent->profile,'get_sidebar'),10,3);
 					
 					include($this->views . '/panel.php');
 				}
@@ -965,11 +1050,7 @@ class LTPLE_Domains {
 	}
 	
 	public function get_sidebar_content($sidebar,$currentTab,$output){
-		
-		$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fas fa-sign"></span> Domains</a></li>';
 
-		//$sidebar .= '<li'.( $currentTab == 'urls' ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '?tab=urls">Urls & Pages</a></li>';
-		
 		return $sidebar;
 	}
 	
@@ -1023,9 +1104,9 @@ class LTPLE_Domains {
 		return $post_link;
 	}
 	
-	public function get_edit_layer_url(){
+	public function add_layer_url_input(){
 		
-		if( $this->parent->user->layer == 'user-page' && $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
+		if( $this->parent->user->layer->post_type == 'user-page' && $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
 			
 			echo'<div id="layer_url" style="margin:15px 0 0 0;padding:15px 0 0 0;border-top:1px solid #eee;">';
 				
@@ -1036,16 +1117,6 @@ class LTPLE_Domains {
 					echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
 						
 						$default_url = 'None / Draft';
-						
-						if( $this->parent->user->layer->post_type != 'user-page' ){
-						
-							$post_type = get_post_type_object($this->parent->user->layer->post_type);
-							
-							if( !empty($post_type->rewrite['slug']) ){
-							
-								$default_url = str_replace($this->parent->request->proto,'',$this->parent->urls->parse_permalink($this->parent->urls->home . '/' . $post_type->rewrite['slug'],$this->parent->user->layer));
-							}
-						}
 						
 						echo'<option value="-1">'.$default_url.'</option>';
 						
@@ -1125,6 +1196,16 @@ class LTPLE_Domains {
 		
 		return $permalink;
 	}		
+	
+	public function get_domain_theme_id($theme_id,$layer){
+		
+		if( $domain = $this->get_current_domain() ){
+			
+			$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
+		}
+		
+		return $theme_id;
+	}
 	
 	public function add_theme_menu_link(){
 

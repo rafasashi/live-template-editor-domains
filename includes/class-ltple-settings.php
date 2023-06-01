@@ -61,14 +61,12 @@ class LTPLE_Domains_Settings {
 			
 				'tab'  		=> 'Domains', 	
 				'name' 		=> 'Domains', 	
-				'in_menu' 	=> true,
 			);	
 			
 			$tabs['user-page'] = array(
 			
-				'tab'  		=> 'Pages', 	
-				'name' 		=> 'Pages', 	
-				'in_menu' 	=> true,
+				'tab'  		=> 'Sites', 	
+				'name' 		=> 'Static Pages',
 			);
 
 			return $tabs;
@@ -123,6 +121,14 @@ class LTPLE_Domains_Settings {
 				array(
 					'id' 			=> 'default_domains',
 					'label'			=> __( 'Shared Domains' , $this->plugin->slug ),
+					'description'	=> 'One domain per line',
+					'type'			=> 'textarea',
+					'placeholder'	=> 'example.com',
+					'style'			=> 'height:150px;width:250px;',
+				),
+				array(
+					'id' 			=> 'private_domains',
+					'label'			=> __( 'Private Domains' , $this->plugin->slug ),
 					'description'	=> 'One domain per line',
 					'type'			=> 'textarea',
 					'placeholder'	=> 'example.com',
