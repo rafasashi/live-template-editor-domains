@@ -91,7 +91,36 @@ class LTPLE_Domains {
 		// site name
 		
 		add_filter('ltple_site_name',array($this,'filter_site_name'),99999,1);
+		
+		// page title
+		
+		add_filter('ltple_header_title', function($title){
+			
+			if( !empty($this->post->post_title) ){
+				
+				$title = $this->post->post_title;
+			}
+			
+			return $title;
+			
+		},9999999,1);
 
+		// register layer type taxonomy
+		
+		register_taxonomy_for_object_type( 'layer-type', 'user-profile' );
+		
+		//Add Custom API Endpoints
+		
+		add_action('rest_api_init', function(){
+			
+			register_rest_route( 'ltple-list/v1', '/user-profile/', array(
+				
+				'methods' 	=> 'GET',
+				'callback' 	=> array($this,'get_panel_rows'),
+				'permission_callback' => '__return_true',
+			));
+		});
+		
 		// social icons in profile
 		
 		add_action('ltple_before_social_icons', array( $this, 'get_social_icons'));		
@@ -180,7 +209,51 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 		
-		$this->parent->register_post_type('user-page', __( 'Pages', 'live-template-editor-client' ), __( 'Page', 'live-template-editor-client' ), '', array(
+		$this->parent->register_post_type('user-theme', __( 'Themes', 'live-template-editor-profile' ), __( 'Theme', 'live-template-editor-profile' ), '', array(
+			
+			'public' 				=> true,
+			'publicly_queryable' 	=> true,
+			'exclude_from_search' 	=> true,
+			'show_ui' 				=> true,
+			'show_in_menu' 			=> false,
+			'show_in_nav_menus' 	=> false,
+			'query_var' 			=> true,
+			'can_export' 			=> false,
+			'rewrite' 				=> false,
+			'capability_type' 		=> 'post',
+			'map_meta_cap'			=> true,
+			'has_archive' 			=> false,
+			'hierarchical' 			=> false,
+			'show_in_rest' 			=> false,
+			//'supports' 			=> array( 'title', 'editor', 'author', 'excerpt', 'comments', 'thumbnail' ),
+			'supports' 				=> array('title','author'),
+			'menu_position' 		=> 5,
+			'menu_icon' 			=> 'dashicons-admin-post',
+		));
+		
+		$this->parent->register_post_type('user-profile', __( 'Home Pages', 'live-template-editor-domains' ), __( 'Home Page', 'live-template-editor-domains' ), '', array(
+
+			'public' 				=> true,
+			'publicly_queryable' 	=> true,
+			'exclude_from_search' 	=> true,
+			'show_ui' 				=> true,
+			'show_in_menu' 			=> false,
+			'show_in_nav_menus' 	=> false,
+			'query_var' 			=> true,
+			'can_export' 			=> false,
+			'rewrite' 				=> false,
+			'capability_type' 		=> 'post',
+			'map_meta_cap'			=> true,
+			'has_archive' 			=> false,
+			'hierarchical' 			=> false,
+			'show_in_rest' 			=> false,
+			//'supports' 			=> array( 'title', 'editor', 'author', 'excerpt', 'comments', 'thumbnail' ),
+			'supports' 				=> array('title','author'),
+			'menu_position' 		=> 5,
+			'menu_icon' 			=> 'dashicons-admin-post',
+		));
+		
+		$this->parent->register_post_type('user-page', __( 'Static Pages', 'live-template-editor-client' ), __( 'Static Page', 'live-template-editor-client' ), '', array(
 
 			'public' 				=> true,
 			'publicly_queryable' 	=> true,
@@ -211,10 +284,11 @@ class LTPLE_Domains {
 		
 		add_filter( 'preview_post_link', array($this,'filter_preview_layer_link'),99999,2 );
 		
-		
 		add_filter('ltple_layer_storages',function($storages){ 
 			
-			$storages['user-page'] = 'Web Page';
+			$storages['user-theme'] 	= 'Theme';
+			$storages['user-profile'] 	= 'Home Page';
+			$storages['user-page'] 		= 'Static Page';
 			
 			return $storages;
 		});	
@@ -244,11 +318,64 @@ class LTPLE_Domains {
 			
 		},9999,3);
 		
-		add_filter('ltple_website_settings_sidebar',function($sidebar,$currentTab,$storage_count){ 
+		add_filter('ltple_website_settings_sidebar',function($section,$currentTab,$storage_count){ 
 			
-			$sidebar .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fas fa-sign"></span> Domain Name</a></li>';
-		
-			return $sidebar;
+			$ltple = LTPLE_Client::instance();
+			
+			$section .= '<li'.( ($currentTab == 'default' || $currentTab == 'urls') ? ' class="active"' : '' ).'><a href="'.$this->parent->urls->domains . '"><span class="fas fa-sign"></span> Domain Name</a></li>';
+
+			$section .='<li'.( $currentTab == 'home-page' ? ' class="active"' : '' ).'>';
+				
+				if( $layer = $this->get_user_profile($ltple->user->ID) ){
+
+					$section .='<a href="'.$layer->urls['edit'].'">'.PHP_EOL;
+						
+						$section .='<span class="fa fa-house-user"></span> Home Page'.PHP_EOL;
+					
+					$section .='</a>'.PHP_EOL;
+				}
+				else{
+					
+					$gallery_url = add_query_arg( array(
+					
+						'output' 	=> 'widget',
+						
+					),$ltple->urls->gallery . '?layer[default_storage]=user-profile');
+					
+					$modal_id='modal_'.md5($gallery_url);
+
+						$section .='<a href="#" data-toggle="modal" data-target="#'.$modal_id.'">'.PHP_EOL;
+							
+							$section .='<span class="fa fa-house-user"></span> Home Page'.PHP_EOL;
+						
+						$section .='</a>'.PHP_EOL;
+
+					$section .='<div class="modal fade" id="'.$modal_id.'" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">'.PHP_EOL;
+						
+						$section .='<div class="modal-dialog modal-full" role="document">'.PHP_EOL;
+							
+							$section .='<div class="modal-content">'.PHP_EOL;
+							
+								$section .='<div class="modal-header">'.PHP_EOL;
+									
+									$section .='<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>'.PHP_EOL;
+									
+									$section .='<h4 class="modal-title text-left" id="myModalLabel">New Project</h4>'.PHP_EOL;
+								
+								$section .='</div>'.PHP_EOL;
+							  
+								$section .= '<iframe data-src="'.$gallery_url.'" style="display:block;position:relative;width:100%;top:0;bottom: 0;border:0;height:calc( 100vh - 50px );"></iframe>';
+							  
+							$section .='</div>'.PHP_EOL;
+							
+						$section .='</div>'.PHP_EOL;
+						
+					$section .='</div>'.PHP_EOL;
+				}
+
+			$section .='</li>';	
+			
+			return $section;
 			
 		},0,3);
 		
@@ -286,9 +413,320 @@ class LTPLE_Domains {
 		
 		add_filter('pre_get_posts',array($this,'filter_feed_query'),99999999,1);
 		
+		// themes
+		
+		add_filter('ltple_profile_in_tab',function($in_tab,$tab){
+			
+			if( $tab == 'theme' ){
+				
+				$in_tab = true;
+			}
+			
+			return $in_tab;
+			
+		},10,2);
+		
+		add_filter('ltple_page_template',function($template,$tab){
+			
+			$ltple = LTPLE_Client::instance();
+
+			if( $tab == 'theme' ){
+
+				$layer = LTPLE_Editor::instance()->get_layer($ltple->layer->id);
+				
+				return $layer->html;
+			}
+			else{
+				
+				// TODO get active theme
+			}
+			
+			return $template;
+			
+		},10,2);
+		
+		add_filter('ltple_render_page_content',function($content,$tab){
+
+			if( $tab == 'theme' ){
+				
+				$content = apply_filters('wp_filter_content_tags',$content);
+			}
+			
+			return $content;
+			
+		},10,2);
+		
+		add_filter('ltple_layer_content',function($content,$layer){
+			
+			if( empty($content) && $layer->post_type == 'user-theme' ){
+				
+				$ltple = LTPLE_Client::instance();
+				
+				if( $defaultId = $ltple->layer->get_default_id($layer->ID) ){
+					
+					$content = get_post_meta($defaultId,'layerContent',true);
+				}
+			}
+			
+			return $content;
+			
+		},10,2);
+		
+		add_filter('ltple_layer_style',function($style,$layer){
+			
+			if( empty($style) ){
+				
+				if( $layer->post_type == 'user-theme' ){
+					
+					$ltple = LTPLE_Client::instance();
+					
+					if( $defaultId = $ltple->layer->get_default_id($layer->ID) ){
+						
+						$style = get_post_meta($defaultId,'layerCss',true);
+					}
+				}
+			}
+			
+			return $style;
+			
+		},10,2);
+		
+		add_filter('ltple_preview_profile_tab', function($tab,$layer_type){
+			
+			if( $layer_type->storage == 'user-theme' ){
+				
+				return 'theme';
+			}
+			
+			return $tab;
+			
+		},10,2);
+		
+		add_filter('ltple_default_layer_css_variables_form_data', function($data,$layer_type){
+			
+			if( $layer_type->storage == 'user-theme' ){
+				
+				$data = $this->get_default_variables_form_data();
+			}
+			
+			return $data;
+			
+		},10,2);
+		
+		add_filter('ltple_profile_id', function($user_id){
+			
+			if( empty($user_id) ){
+				
+				global $post;
+				
+				if( !empty($post) && $post->post_type == 'user-theme' ){
+					
+					$user_id = intval($post->post_author);
+				
+					add_filter('ltple_profile_tab', function($tab){
+						
+						return 'theme';
+					});
+				}
+			}
+			
+			return $user_id;
+			
+		},10,1);
+
+		add_filter('ltple_document_classes',function($classes,$layer_id=null){
+			
+			if( $layer = LTPLE_Editor::instance()->get_layer($layer_id) ){
+				
+				if( $layer->post_type == 'user-theme' ){
+				
+					$ltple = LTPLE_Client::instance();
+			
+					$classes .= ( !empty($classes) ? ' ' : '' ) . $ltple->layer->get_layer_classes($layer->ID);
+				}
+			}
+			
+			return $classes;
+			
+		},10,2);
+		
+		/*
+		add_filter('ltple_default_layer_fields',function($layer_type){
+			
+			if( $layer_type->output == 'hosted-page' && $layer_type->storage != 'user-theme' ){
+				
+				$ltple = LTPLE_Client::instance();
+				
+				$ltple->layer->defaultFields[]=array( 
+				
+					'metabox' => array(
+					
+						'name' 		=> 'layer-theme',
+						'title' 	=> __( 'Theme ID', 'live-template-editor-client' ), 
+						'screen'	=> array('cb-default-layer'),
+						'context' 	=> 'side',
+						'frontend' 	=> false,
+					),	
+					'id'			=> 'themeId',
+					'type'			=> 'number',
+					'description'	=> ''
+				);	
+			}
+		});
+		*/
+
+		add_filter('ltple_user-profile_link',function($post_link,$post){ 
+			
+			$ltple = LTPLE_Client::instance();
+			
+			$post_link = $ltple->urls->profile . '%author%/';
+			
+			return $post_link;
+			
+		},10,2);
+		
+		add_filter('ltple_user-profile_layer_area',function(){ 
+			
+			return 'frontend';
+		});
+		
+		add_filter('ltple_user_profile_html',array($this,'get_user_profile_html'),10,2);
+		
+		add_filter('ltple_user_profile_css',array($this,'get_user_profile_css'),10,2);
+		
+		add_filter('ltple_post',function($post){
+			
+			$ltple = LTPLE_Client::instance();
+			
+			if( $ltple->profile->tab == 'home' ){
+				
+				if( $profile = $this->get_user_profile($ltple->profile->id) ){
+					
+					if( $profile->post_status == 'publish' ){
+					
+						$post = $profile;
+					}
+				}
+			}
+			
+			return $post;
+			
+		},9999,1);
+		
+		add_filter('ltple_user_layer_fields', function ($post=null,$metabox){
+
+			if( !empty($post) ){
+				
+				if( $post->post_type == 'user-theme' ){
+					
+					// theme variables
+					
+					$ltple = LTPLE_Client::instance();
+					
+					if( $defaultId = $ltple->layer->get_default_id($post->ID) ){
+						
+						if( $data = $this->get_variables_form_data($defaultId) ){
+							
+							$values = get_post_meta($post->ID,'themeCssVars',true);
+							
+							$metabox = array( 
+					
+								'name' 		=> 'themeCssVars',
+								'title' 	=> 'Settings',
+								'screen'	=> array($post->post_type),
+								'context' 	=> 'advanced',
+								'frontend'	=> true,
+							);
+							
+							foreach( $data['name'] as $e => $name) {
+								
+								$name = str_replace('-','_',sanitize_title($name));
+								
+								$input = !empty($data['input'][$e]) ? $data['input'][$e] : false;
+								
+								if( !empty($name) && !empty($input) ){
+									
+									// get field id
+									
+									$field_id = str_replace(array('-',' '),'_',$name);
+									
+									// get required
+											
+									$required = ( ( empty($data['required'][$e]) || $data['required'][$e] == 'required' ) ? true : false );
+									
+									// get label
+									
+									$label = isset($data['label'][$e]) ? $data['label'][$e] : ucfirst(str_replace('_',' ',$name));
+									
+									// get value
+									
+									$value = isset($values[$field_id]) ? $values[$field_id] : $data['value'][$e];
+									
+									// set input
+									
+									$ltple->layer->userFields[] = array(
+										
+										'metabox' 		=> $metabox,
+										'type'			=> $input,
+										'id'			=> 'theme_' . $field_id,
+										'name'			=> 'themeCssVars[' . $field_id . ']',
+										'label'			=> $label,
+										'data'			=> $value,
+										'required' 		=> $required,
+										'placeholder' 	=> '',
+										'description'	=> '',
+										'class'			=> 'clearfix col-xs-12 col-sm-6 col-md-4',
+									);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			return $post;
+			
+		},10,2);
+
+		add_action( 'add_meta_boxes', function(){
+			
+			$this->admin->add_meta_box (
+			
+				'theme_settings',
+				__( 'Theme Settings', 'live-template-editor-profile' ), 
+				array('user-domain'),
+				'advanced'
+			);
+		});
+		
+		add_filter('user-domain_custom_fields',function($fields){
+
+			$fields[]=array(
+			
+				'metabox' =>
+				
+					array('name'=>'theme_settings'),
+					'id'			=> 'themeId',
+					'label'			=> 'Theme ID',
+					'placeholder'	=> '',
+					'type'			=> 'number',
+					'description'	=> '',
+			);
+			
+			return $fields;
+			
+		},10,1);
+		
 		//Add Custom API Endpoints
 		
 		add_action('rest_api_init', function(){
+						
+			register_rest_route( 'ltple-list/v1', '/user-profile/', array(
+				
+				'methods' 	=> 'GET',
+				'callback' 	=> array($this,'get_user_profile_rows'),
+				'permission_callback' => '__return_true',
+			));
 			
 			register_rest_route( 'ltple-list/v1', '/user-page/', array(
 				
@@ -296,6 +734,7 @@ class LTPLE_Domains {
 				'callback' 	=> array($this,'get_user_page_rows'),
 				'permission_callback' => '__return_true',
 			));
+
 		});
 		
 	} // End __construct ()
@@ -937,6 +1376,60 @@ class LTPLE_Domains {
 			
 		},999999);		
 	}
+
+	public function get_default_variables_form_data(){
+		
+		$ltple = LTPLE_Client::instance();
+		
+		return array(
+		
+			'input' => array(
+			
+				'color',
+				'color',
+				'color',
+			),
+			'label' => array(
+			
+				'Main Color',
+				'Navbar Color',
+				'Link Color',
+			),
+			'name' => array(
+			
+				'main_color',
+				'navbar_color',
+				'link_color',
+			),
+			'required' => array(
+			
+				'required',
+				'required',
+				'required',
+			),
+			'value' => array(
+			
+				$ltple->settings->mainColor,
+				$ltple->settings->navbarColor,
+				$ltple->settings->linkColor,
+			),				
+		);
+	}
+	
+	public function get_variables_form_data($id){
+		
+		if( !isset($this->vars[$id]) ){
+			
+			if( !$data = get_post_meta($id,'layerCssVars',true) ){
+				
+				$data = $this->get_default_variables_form_data();
+			}
+			
+			$this->vars[$id] = $data;
+		}
+		
+		return $this->vars[$id];
+	}
 	
 	public function get_social_icons($content){
 		
@@ -1052,6 +1545,71 @@ class LTPLE_Domains {
 	public function get_sidebar_content($sidebar,$currentTab,$output){
 
 		return $sidebar;
+	}
+
+	public function get_user_profile($user_id){
+		
+		if( $posts = get_posts( array(
+			
+			'post_type' 	=> 'user-profile',
+			'post_status' 	=> array('publish','draft'),
+			'author' 		=> $user_id,
+		))){
+			
+			$layer = LTPLE_Editor::instance()->get_layer($posts[0]);
+
+			if( empty($layer->html) ){
+				
+				if( $default_id = LTPLE_Client::instance()->layer->get_default_id($layer->ID) ){
+					
+					$layer->html 	= get_post_meta($default_id,'layerContent',true);
+					$layer->css 	= get_post_meta($default_id,'layerCss',true);
+					$layer->js 		= get_post_meta($default_id,'layerJs',true);
+				}
+			}
+			
+			return $layer;
+		}	
+
+		return false;
+	}
+	
+	public function get_user_profile_html($html,$user_id){
+		
+		if( $layer = $this->get_user_profile($user_id) ){
+			
+			if( $layer->post_status == 'publish' ){
+			
+				LTPLE_Client::instance()->layer->set_layer($layer,false);
+			
+				$html = apply_filters('wp_filter_content_tags',$layer->html,$layer);
+			}
+		}
+		
+		return $html;
+	}
+	
+	public function get_user_profile_css($css,$user_id){
+		
+		if( $layer = $this->get_user_profile($user_id) ){
+			
+			if( $layer->post_status == 'publish' ){
+			
+				$css = $layer->css;
+			}
+		}
+		
+		return $css;
+	}
+	
+	public function get_user_profile_js($js,$user_id){
+		
+		if( $layer = $this->get_user_profile($user_id) ){
+			
+			$js = $layer->js;
+		}
+		
+		return $js;
 	}
 	
 	public function filter_user_page_link($post_link,$post){
@@ -1892,8 +2450,15 @@ class LTPLE_Domains {
 		
 		return $query;
 	}
-
-	public function get_user_page_rows($request) {
+	
+	public function get_user_profile_rows($request){
+		
+		$page_rows = [];
+		
+		return $page_rows;
+	}
+	
+	public function get_user_page_rows($request){
 		
 		$page_rows = [];
 		

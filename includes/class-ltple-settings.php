@@ -59,18 +59,42 @@ class LTPLE_Domains_Settings {
 			
 			$tabs['user-domain'] = array(
 			
-				'tab'  		=> 'Domains', 	
-				'name' 		=> 'Domains', 	
-			);	
+				'tab'  		=> 'Sites', 	
+				'name' 		=> 'Domains', 
+				'in_menu' 	=> true,
+			);
+			
+			$tabs['user-theme'] = array(
+			
+				'tab'  		=> 'Sites', 	
+				'name' 		=> 'Themes', 	
+				'in_menu' 	=> true,
+			);
+
+			$tabs['user-profile'] = array(
+			
+				'tab'  		=> 'Sites', 	
+				'name' 		=> 'Home Pages', 	
+				'in_menu' 	=> false,
+			);
+			
+			return $tabs;
+			
+		},0,1);
+		
+		add_filter('ltple_admin_tabs_user-contents', function($tabs){
+			
 			
 			$tabs['user-page'] = array(
 			
 				'tab'  		=> 'Sites', 	
 				'name' 		=> 'Static Pages',
+				'in_menu' 	=> true,
 			);
 
 			return $tabs;
-		});
+			
+		},9999,1);
 	}
 	
 	public function plugin_info(){
