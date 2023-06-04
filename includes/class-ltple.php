@@ -82,8 +82,12 @@ class LTPLE_Domains {
 
 		//init addon 
 		
-		add_action('init', array( $this, 'init_domain' ));
-		
+		add_action('wp_loaded', array( $this, 'init_domain' ));
+
+		add_filter('ltple_preview_profile_tab', array($this,'filter_preview_profile_tab'),10,2);
+
+		add_filter('ltple_preview_post_url', array($this,'filter_preview_user_profile_link'),99999,2 );
+
 		add_filter('ltple_profile_redirect', array( $this, 'redirect_profile' ),99999);
 		
 		add_filter('ltple_profile_disclaimer', array( $this, 'set_user_disclaimer' ),0);
@@ -105,10 +109,6 @@ class LTPLE_Domains {
 			
 		},9999999,1);
 
-		// register layer type taxonomy
-		
-		register_taxonomy_for_object_type( 'layer-type', 'user-profile' );
-		
 		//Add Custom API Endpoints
 		
 		add_action('rest_api_init', function(){
@@ -175,11 +175,7 @@ class LTPLE_Domains {
 		add_filter('ltple_user_plan_info', array( $this, 'add_user_plan_info'),10,1);
 		
 		add_filter('ltple_dashboard_manage_sidebar', array( $this, 'get_sidebar_content' ),2,3);
-			
-		add_action('ltple_user-page_link', array( $this, 'filter_user_page_link'),10,2);	
-		
-		add_action('ltple_user-product_link', array( $this, 'filter_user_product_link'),10,2);	
-						
+
 		add_action('ltple_edit_layer_title', array( $this, 'add_layer_url_input'));
 		
 		add_action('ltple_current_theme_id', array( $this, 'get_domain_theme_id'),10,2);
@@ -240,7 +236,7 @@ class LTPLE_Domains {
 			'show_in_menu' 			=> false,
 			'show_in_nav_menus' 	=> false,
 			'query_var' 			=> true,
-			'can_export' 			=> false,
+			'can_export' 			=> true,
 			'rewrite' 				=> false,
 			'capability_type' 		=> 'post',
 			'map_meta_cap'			=> true,
@@ -264,7 +260,8 @@ class LTPLE_Domains {
 			'query_var' 			=> true,
 			'can_export' 			=> true,
 			'rewrite' 				=> false,
-			'capability_type' 		=> 'post', 
+			'capability_type' 		=> 'post',
+			'map_meta_cap'			=> true,
 			'has_archive' 			=> true,
 			'hierarchical' 			=> false,
 			'show_in_rest' 			=> false,
@@ -273,16 +270,9 @@ class LTPLE_Domains {
 			'menu_position' 		=> 5,
 			'menu_icon' 			=> 'dashicons-admin-post',
 		)); 
-		
-		add_filter('wp_loaded',function(){
-		
-			register_taxonomy_for_object_type('layer-type','user-page');
-		});
 
 		add_filter('manage_user-page_posts_columns', array( $this->parent->layer, 'set_user_layer_columns'),99999);
 		add_action('manage_user-page_posts_custom_column', array( $this->parent->layer, 'add_layer_type_column_content'), 10, 2);		
-		
-		add_filter( 'preview_post_link', array($this,'filter_preview_layer_link'),99999,2 );
 		
 		add_filter('ltple_layer_storages',function($storages){ 
 			
@@ -388,13 +378,8 @@ class LTPLE_Domains {
 		
 			return $sidebar;
 		
-		},99,3);	
-		
-		add_filter('ltple_user-page_layer_area',function(){ 
-			
-			return 'frontend';
-		});
-		
+		},99,3);
+
 		add_filter('ltple_editor_preview_url', array( $this,'get_editor_preview_url'),1,2);
 		
 		// sitemaps
@@ -493,7 +478,11 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_preview_profile_tab', function($tab,$layer_type){
 			
-			if( $layer_type->storage == 'user-theme' ){
+			if( $layer_type->storage == 'user-profile' ){
+				
+				return 'home';
+			}			
+			elseif( $layer_type->storage == 'user-theme' ){
 				
 				return 'theme';
 			}
@@ -575,22 +564,7 @@ class LTPLE_Domains {
 		});
 		*/
 
-		add_filter('ltple_user-profile_link',function($post_link,$post){ 
-			
-			$ltple = LTPLE_Client::instance();
-			
-			$post_link = $ltple->urls->profile . '%author%/';
-			
-			return $post_link;
-			
-		},10,2);
-		
-		add_filter('ltple_user-profile_layer_area',function(){ 
-			
-			return 'frontend';
-		});
-		
-		add_filter('ltple_user_profile_html',array($this,'get_user_profile_html'),10,2);
+		add_filter('ltple_user_profile_html',array($this,'filter_user_profile_html'),10,2);
 		
 		add_filter('ltple_user_profile_css',array($this,'get_user_profile_css'),10,2);
 		
@@ -738,22 +712,6 @@ class LTPLE_Domains {
 		});
 		
 	} // End __construct ()
-
-	public function filter_preview_layer_link($url,$post){
-
-		if( $post->post_type == 'user-page' && $post->post_status != 'publish' ){
-			
-			$url = add_query_arg( array(
-				
-				'p' 		=> $post->ID,
-				'post_type' => $post->post_type,
-				'preview' 	=> 'true',
-				
-			),$this->parent->urls->home);
-		}
-
-		return $url;
-	}
 	
 	public function redirect_profile(){
 
@@ -975,7 +933,7 @@ class LTPLE_Domains {
 		return $domain_urls;
 	}
 	
-	public function get_primary_domain( $user = null ){
+	public function get_primary_domain( $user = null, $return = 'url' ){
 		
 		$primary_domain = $this->parent->urls->home;
 		
@@ -987,11 +945,13 @@ class LTPLE_Domains {
 					
 					if( $domain->is_primary ){
 						
-						$primary_domain = $this->parent->request->proto . $domain->post_title;
-						
-						if( defined('REW_DEV_ENV') && REW_DEV_ENV === true ){
+						if( $return == 'object' ){
 							
-							$primary_domain = str_replace('.','--',untrailingslashit($primary_domain)) . '.' . REW_SERVER;
+							return $domain;
+						}
+						else{
+								
+							$primary_domain = apply_filters('rew_server_url',$this->parent->request->proto . $domain->post_title);
 						}
 						
 						break 2;
@@ -1134,7 +1094,37 @@ class LTPLE_Domains {
 		return $this->currentDomain;
 	}
 	
+	public function get_user_site_storages(){
+		
+		return array(
+		
+			'home' 	=> 'user-profile',
+			'posts' => 'user-post',
+			'store' => 'user-product',
+		);
+	}
+	
 	public function init_domain(){
+		
+		// storages
+			
+		if( $storages = $this->get_user_site_storages() ){
+			
+			foreach( $storages as $storage ){
+				
+				register_taxonomy_for_object_type('layer-type',$storage);
+				
+				add_action('ltple_'.$storage.'_link', array( $this, 'filter_user_profile_link'),10,2);	
+				
+				add_filter('ltple_'.$storage.'_layer_area', array( $this, 'filter_user_profile_area'),10);
+			}
+		}
+		
+		// pages
+		
+		register_taxonomy_for_object_type('layer-type','user-page');
+			
+		add_action('ltple_user-page_link', array( $this, 'filter_user_page_link'),10,2);	
 		
 		// get domain	
 		
@@ -1574,16 +1564,20 @@ class LTPLE_Domains {
 		return false;
 	}
 	
-	public function get_user_profile_html($html,$user_id){
+	public function filter_user_profile_html($html,$user_id){
 		
-		if( $layer = $this->get_user_profile($user_id) ){
+		if( !$layer = $this->get_user_profile($user_id) ){
 			
-			if( $layer->post_status == 'publish' ){
-			
-				LTPLE_Client::instance()->layer->set_layer($layer,false);
-			
-				$html = apply_filters('wp_filter_content_tags',$layer->html,$layer);
-			}
+			$layer = LTPLE_Editor::instance()->get_layer();
+		}
+		
+		$layer_type = $this->parent->layer->get_layer_type($layer);
+		
+		if( $layer_type->storage == 'user-profile' && $layer->post_status == 'publish' ){
+		
+			$this->parent->layer->set_layer($layer,false);
+		
+			$html = apply_filters('wp_filter_content_tags',$layer->html,$layer);
 		}
 		
 		return $html;
@@ -1643,25 +1637,107 @@ class LTPLE_Domains {
 		return $post_link;
 	}
 	
-	public function filter_user_product_link($post_link,$post){
+	public function filter_user_profile_area($area){
 		
-		if( $primary_domain = $this->get_primary_domain($post->post_author) ){
+		return 'frontend';
+	}
+	
+	public function filter_user_profile_link($post_link,$post){
+		
+		$storages = $this->get_user_site_storages();
+		
+		if( in_array($post->post_type,$storages)){
 			
-			$url = parse_url($post_link);
-			
-			if( !empty($url['path']) ){
+			if( $domain = $this->get_primary_domain($post->post_author) ){
 				
-				$post_link = $primary_domain . preg_replace('#^\/' . $this->parent->profile->slug . '\/' . $post->post_author . '#', '', $url['path']);
-			}
-			else{
-			
-				$post_link = $primary_domain;
+				$url = parse_url($post_link);
+				
+				$slug = array_search($post->post_type,$storages);
+				
+				if( $slug != 'home' && !empty($url['path']) ){
+					
+					if( !empty($post->post_name) ){
+						
+						$post_name = $post->post_name;
+					}
+					else{
+						
+						$post_name = $this->parent->urls->assign_post_name($post);
+					}
+					
+					$post_link = $domain . '/' . $slug . '/' . $post_name . '/';
+				}
+				else{
+				
+					$post_link = $domain;
+				}
 			}
 		}
 		
 		return $post_link;
 	}
+
+	public function filter_preview_user_profile_link($url,$post){
+		
+		if( empty($url) ){
+			
+			if( is_numeric($post) ){
+			
+				$post = get_post($post);
+			}
+			
+			$storages = $this->get_user_site_storages();
+			
+			if( in_array($post->post_type,$storages) ){
+				
+				$slug = array_search($post->post_type,$storages);
+			
+				if( !empty($post->post_name) ){
+					
+					$post_name = $post->post_name;
+				}
+				else{
+					
+					$post_name = $this->parent->urls->assign_post_name($post);
+				}
+				
+				// has to be in the same domain as editor for CORS
+				
+				$url = apply_filters('ltple_profile_permalink',add_query_arg( array(
+					
+					'preview'	=> 'true',
+					'_'			=> time(),
+					
+				),$this->parent->urls->profile . $post->post_author . '/' . $slug . '/' . $post_name . '/'),$post,$slug);
+			}
+			elseif( $post->post_status != 'publish' ){
+				
+				$url = add_query_arg( array(
+					
+					'p' 		=> $post->ID,
+					'post_type' => $post->post_type,
+					'preview' 	=> 'true',
+					'_'			=> time(),
+					
+				),$this->parent->urls->home);
+			}
+		}
+		
+		return $url;
+	}
 	
+	public function filter_preview_profile_tab($tab,$layer_type){
+		
+		$storage = $this->get_user_site_storages();
+		
+		if( in_array($layer_type->storage,$storage) ){
+			
+			return array_search($layer_type->storage,$storage);
+		}
+		
+		return $tab;
+	}
+
 	public function add_layer_url_input(){
 		
 		if( $this->parent->user->layer->post_type == 'user-page' && $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
@@ -1745,11 +1821,10 @@ class LTPLE_Domains {
 		
 		if( $permalink = get_permalink($post) ){
 
-			$profile_url 	= $this->parent->profile->get_user_url($post->post_author);
+			if( $domain = $this->get_primary_domain($post->post_author) ){
 		
-			$primary 		= $this->get_primary_domain($post->post_author);
-		
-			$permalink 		= str_replace($profile_url,$primary,$permalink);
+				$permalink 	= str_replace($this->parent->profile->get_user_url($post->post_author),$domain,$permalink);
+			}
 		}
 		
 		return $permalink;
@@ -1757,7 +1832,7 @@ class LTPLE_Domains {
 	
 	public function get_domain_theme_id($theme_id,$layer){
 		
-		if( $domain = $this->get_current_domain() ){
+		if( $domain = $this->get_primary_domain($layer->post_author,'object') ){
 			
 			$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
 		}
@@ -2443,7 +2518,7 @@ class LTPLE_Domains {
 					
 					// filter post types
 					
-					$query->set( 'post_type', apply_filters('ltple_domain_feed_post_types',array('user-page'),$domain) );
+					$query->set( 'post_type', array_merge(array('user-page'),$this->get_user_site_storages()) );
 				}
 			}
 		}

@@ -84,7 +84,6 @@ class LTPLE_Domains_Settings {
 		
 		add_filter('ltple_admin_tabs_user-contents', function($tabs){
 			
-			
 			$tabs['user-page'] = array(
 			
 				'tab'  		=> 'Sites', 	
