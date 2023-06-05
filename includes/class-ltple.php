@@ -178,7 +178,9 @@ class LTPLE_Domains {
 
 		add_action('ltple_edit_layer_title', array( $this, 'add_layer_url_input'));
 		
-		add_action('ltple_current_theme_id', array( $this, 'get_domain_theme_id'),10,2);
+		add_action('ltple_user_theme_id', array( $this, 'get_user_theme_id'),10,2);
+		
+		add_action('ltple_current_theme_id', array( $this, 'get_current_theme_id'),10,2);
 		
 		$this->add_star_triggers();
 		
@@ -397,78 +399,48 @@ class LTPLE_Domains {
 		// feeds
 		
 		add_filter('pre_get_posts',array($this,'filter_feed_query'),99999999,1);
-		
-		// themes
-		
-		add_filter('ltple_profile_in_tab',function($in_tab,$tab){
+
+		add_filter('ltple_theme_template',function($template,$tab){
 			
-			if( $tab == 'theme' ){
+			if( $theme = $this->parent->profile->get_current_theme() ){
 				
-				$in_tab = true;
+				if( !empty($theme->html) ){
+					
+					$template = $theme->html;
+				}
+				elseif( $theme->post_type != 'cb-default-layer' ){
+					
+					if( $defaultId = $this->parent->layer->get_default_id($theme->ID) ){
+						
+						if( $default_content = get_post_meta($defaultId,'layerContent',true) ){
+							
+							$template = $default_content;
+						}
+					}
+				}
 			}
 			
-			return $in_tab;
-			
-		},10,2);
-		
-		add_filter('ltple_page_template',function($template,$tab){
-			
-			$ltple = LTPLE_Client::instance();
-
-			if( $tab == 'theme' ){
-
-				$layer = LTPLE_Editor::instance()->get_layer($ltple->layer->id);
+			if( $layer = LTPLE_Editor::instance()->get_layer() ){
 				
-				return $layer->html;
-			}
-			else{
+				$layer_type = $this->parent->layer->get_layer_type($layer);
 				
-				// TODO get active theme
+				if( $layer_type->storage == 'user-theme' ){
+					
+					$template = apply_filters('wp_filter_content_tags',$template);
+				}
 			}
 			
 			return $template;
 			
 		},10,2);
 		
-		add_filter('ltple_render_page_content',function($content,$tab){
-
-			if( $tab == 'theme' ){
-				
-				$content = apply_filters('wp_filter_content_tags',$content);
-			}
-			
-			return $content;
-			
-		},10,2);
-		
-		add_filter('ltple_layer_content',function($content,$layer){
-			
-			if( empty($content) && $layer->post_type == 'user-theme' ){
-				
-				$ltple = LTPLE_Client::instance();
-				
-				if( $defaultId = $ltple->layer->get_default_id($layer->ID) ){
-					
-					$content = get_post_meta($defaultId,'layerContent',true);
-				}
-			}
-			
-			return $content;
-			
-		},10,2);
-		
 		add_filter('ltple_layer_style',function($style,$layer){
 			
-			if( empty($style) ){
-				
-				if( $layer->post_type == 'user-theme' ){
+			if( empty($style) && $layer->post_type == 'user-theme' ){
 					
-					$ltple = LTPLE_Client::instance();
+				if( $defaultId = $this->parent->layer->get_default_id($layer->ID) ){
 					
-					if( $defaultId = $ltple->layer->get_default_id($layer->ID) ){
-						
-						$style = get_post_meta($defaultId,'layerCss',true);
-					}
+					$style = get_post_meta($defaultId,'layerContent',true);
 				}
 			}
 			
@@ -478,13 +450,14 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_preview_profile_tab', function($tab,$layer_type){
 			
-			if( $layer_type->storage == 'user-profile' ){
+			if( in_array($layer_type->storage,array(
+				
+				'user-profile',
+				'user-theme',
+			
+			))){
 				
 				return 'home';
-			}			
-			elseif( $layer_type->storage == 'user-theme' ){
-				
-				return 'theme';
 			}
 			
 			return $tab;
@@ -514,7 +487,7 @@ class LTPLE_Domains {
 				
 					add_filter('ltple_profile_tab', function($tab){
 						
-						return 'theme';
+						return 'home';
 					});
 				}
 			}
@@ -539,32 +512,28 @@ class LTPLE_Domains {
 			
 		},10,2);
 		
-		/*
 		add_filter('ltple_default_layer_fields',function($layer_type){
 			
-			if( $layer_type->output == 'hosted-page' && $layer_type->storage != 'user-theme' ){
+			if( $layer_type->storage == 'user-theme' ){
 				
-				$ltple = LTPLE_Client::instance();
-				
-				$ltple->layer->defaultFields[]=array( 
+				$this->parent->layer->defaultFields[]=array( 
 				
 					'metabox' => array(
 					
-						'name' 		=> 'layer-theme',
-						'title' 	=> __( 'Theme ID', 'live-template-editor-client' ), 
+						'name' 		=> 'demo-theme-content',
+						'title' 	=> __( 'Demo Layer ID', 'live-template-editor-client' ), 
 						'screen'	=> array('cb-default-layer'),
 						'context' 	=> 'side',
 						'frontend' 	=> false,
 					),	
-					'id'			=> 'themeId',
+					'id'			=> 'demoLayerId',
 					'type'			=> 'number',
 					'description'	=> ''
 				);	
 			}
 		});
-		*/
 
-		add_filter('ltple_user_profile_html',array($this,'filter_user_profile_html'),10,2);
+		add_filter('ltple_user_profile_html',array($this,'get_user_profile_html'),10,2);
 		
 		add_filter('ltple_user_profile_css',array($this,'get_user_profile_css'),10,2);
 		
@@ -1097,7 +1066,7 @@ class LTPLE_Domains {
 	public function get_user_site_storages(){
 		
 		return array(
-		
+			
 			'home' 	=> 'user-profile',
 			'posts' => 'user-post',
 			'store' => 'user-product',
@@ -1564,20 +1533,40 @@ class LTPLE_Domains {
 		return false;
 	}
 	
-	public function filter_user_profile_html($html,$user_id){
+	public function get_user_profile_html($html,$user_id){
 		
 		if( !$layer = $this->get_user_profile($user_id) ){
 			
 			$layer = LTPLE_Editor::instance()->get_layer();
 		}
 		
-		$layer_type = $this->parent->layer->get_layer_type($layer);
+		if( $layer->post_type == 'user-theme' ){
+			
+			$default_id = $this->parent->layer->get_default_id($layer->ID);
+			
+			if( $demo_id = intval(get_post_meta($default_id,'demoLayerId',true)) ){
+				
+				if( $demo = LTPLE_Editor::instance()->get_layer($demo_id) ){
+			
+					$html = $demo->html;
+				}
+			}
+			
+			if( LTPLE_Editor::instance()->is_preview() ){
+			
+				$html = '<ltple-mod>' . $html . '</ltple-mod>';
+			}
+		}
+		else{
 		
-		if( $layer_type->storage == 'user-profile' && $layer->post_status == 'publish' ){
-		
-			$this->parent->layer->set_layer($layer,false);
-		
-			$html = apply_filters('wp_filter_content_tags',$layer->html,$layer);
+			$layer_type = $this->parent->layer->get_layer_type($layer);
+			
+			if( $layer_type->storage == 'user-profile' && $layer->post_status == 'publish' ){
+			
+				$this->parent->layer->set_layer($layer,false);
+			
+				$html = apply_filters('wp_filter_content_tags',$layer->html,$layer);
+			}
 		}
 		
 		return $html;
@@ -1604,6 +1593,13 @@ class LTPLE_Domains {
 		}
 		
 		return $js;
+	}
+	
+	public function filter_user_theme_link($post_link,$post){
+	
+		dump($post_link);
+	
+		return $post_link;
 	}
 	
 	public function filter_user_page_link($post_link,$post){
@@ -1709,6 +1705,17 @@ class LTPLE_Domains {
 					'_'			=> time(),
 					
 				),$this->parent->urls->profile . $post->post_author . '/' . $slug . '/' . $post_name . '/'),$post,$slug);
+			}
+			elseif( $post->post_type == 'user-theme' ){
+				
+				$url = add_query_arg( array(
+					
+					'p' 		=> $post->ID,
+					'post_type' => $post->post_type,
+					'preview' 	=> 'true',
+					'_'			=> time(),
+					
+				),$this->parent->urls->home);
 			}
 			elseif( $post->post_status != 'publish' ){
 				
@@ -1830,7 +1837,17 @@ class LTPLE_Domains {
 		return $permalink;
 	}		
 	
-	public function get_domain_theme_id($theme_id,$layer){
+	public function get_user_theme_id($theme_id,$layer){
+		
+		if( $domain = $this->get_primary_domain($this->parent->user->ID,'object') ){
+			
+			$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
+		}
+		
+		return $theme_id;
+	}
+	
+	public function get_current_theme_id($theme_id,$layer){
 		
 		if( $domain = $this->get_primary_domain($layer->post_author,'object') ){
 			
