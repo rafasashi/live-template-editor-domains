@@ -904,7 +904,14 @@ class LTPLE_Domains {
 	
 	public function get_primary_domain( $user = null, $return = 'url' ){
 		
-		$primary_domain = $this->parent->urls->home;
+		if( $return == 'object' ){
+			
+			$primary_domain = false;
+		}
+		else{
+			
+			$primary_domain = $this->parent->urls->home;
+		}
 		
 		if( $list = $this->get_user_domain_list( $user )){
 			
@@ -1837,11 +1844,14 @@ class LTPLE_Domains {
 		return $permalink;
 	}		
 	
-	public function get_user_theme_id($theme_id,$layer){
+	public function get_user_theme_id($theme_id,$user_id){
 		
-		if( $domain = $this->get_primary_domain($this->parent->user->ID,'object') ){
+		if( !empty($user_id) ){
 			
-			$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
+			if( $domain = $this->get_primary_domain($user_id,'object') ){
+				
+				$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
+			}
 		}
 		
 		return $theme_id;
