@@ -92,6 +92,12 @@ class LTPLE_Domains {
 		
 		add_filter('ltple_profile_disclaimer', array( $this, 'set_user_disclaimer' ),0);
 		
+		add_filter('ltple_user-page_template_path',function($path){
+			
+			return $this->parent->views . '/layer.php';
+			
+		},99999,1);
+		
 		// site name
 		
 		add_filter('ltple_site_name',array($this,'filter_site_name'),99999,1);
