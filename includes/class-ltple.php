@@ -184,7 +184,9 @@ class LTPLE_Domains {
 
 		add_action('ltple_edit_layer_title', array( $this, 'add_layer_url_input'));
 		
-		add_action('ltple_user_theme_id', array( $this, 'get_user_theme_id'),10,2);
+		add_action('ltple_profile_theme_id', array( $this, 'filter_profile_theme_id'),10,2);
+		
+		add_action('ltple_user_theme_id', array( $this, 'filter_user_theme_id'),10,2);
 		
 		add_action('ltple_current_theme_id', array( $this, 'get_current_theme_id'),10,2);
 		
@@ -485,22 +487,29 @@ class LTPLE_Domains {
 			
 			if( empty($user_id) ){
 				
-				global $post;
-				
-				if( !empty($post) && $post->post_type == 'user-theme' ){
+				if( $domain = $this->get_current_domain() ){
 					
-					$user_id = intval($post->post_author);
-				
-					add_filter('ltple_profile_tab', function($tab){
+					$user_id = intval($domain->post_author);
+				}
+				else{
+					
+					global $post;
+					
+					if( !empty($post) && $post->post_type == 'user-theme' ){
 						
-						return 'home';
-					});
+						$user_id = intval($post->post_author);
+					
+						add_filter('ltple_profile_tab', function($tab){
+							
+							return 'home';
+						});
+					}
 				}
 			}
 			
 			return $user_id;
 			
-		},10,1);
+		},9999999,1);
 
 		add_filter('ltple_document_classes',function($classes,$layer_id=null){
 			
@@ -1249,17 +1258,6 @@ class LTPLE_Domains {
 	public function set_user_profile(){
 		
 		remove_action('template_redirect', 'redirect_canonical');
-					
-		add_filter('ltple_profile_id', function($id){
-			
-			if( $domain = $this->get_current_domain() ){
-				
-				$id = intval($domain->post_author);
-			}
-			
-			return $id;
-			
-		},99999);
 		
 		add_filter('ltple_profile_tab', function($tab){
 			
@@ -1848,9 +1846,26 @@ class LTPLE_Domains {
 		}
 		
 		return $permalink;
-	}		
+	}	
+
+	public function filter_profile_theme_id($theme_id,$user_id){
+		
+		if( !empty($user_id) ){
+			
+			if( $domain = $this->get_current_domain() ){
+				
+				$theme_id = intval(get_post_meta($domain->ID,'themeId',true));
+			}
+			else{
+				
+				$theme_id = apply_filters('ltple_user_theme_id',$theme_id,$user_id);
+			}
+		}
+		
+		return $theme_id;
+	}
 	
-	public function get_user_theme_id($theme_id,$user_id){
+	public function filter_user_theme_id($theme_id,$user_id){
 		
 		if( !empty($user_id) ){
 			
