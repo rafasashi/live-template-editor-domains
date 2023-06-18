@@ -157,24 +157,22 @@ class LTPLE_Domains {
 				
 		// add fields
 
-		add_filter('ltple_account_options', array( $this, 'add_account_options'),10,1);
+		add_filter('ltple_account_options', array( $this, 'add_account_options'),10,2);
 		add_filter('ltple_account_plan_fields', array( $this, 'add_layer_plan_fields'),10,2);
 		add_action('ltple_save_layer_fields', array( $this, 'save_layer_fields' ),10,1);			
 		
 		// add layer colums
-		
-		add_filter('ltple_layer_option_columns', array( $this, 'add_layer_columns'));
-		
-		add_filter('ltple_layer_column_content', array( $this, 'add_layer_column_content'),10,2);
+
+		add_filter('ltple_layer_usage_column', array( $this, 'filter_layer_column_content'),10,3);
 		
 		// handle plan
 		
 		add_filter('ltple_subscription_plan_info', array( $this, 'get_subscription_plan_info'),10,2);	
 		
-		add_filter('ltple_api_layer_plan_option', array( $this, 'add_api_layer_plan_option'),10,1);	
-		add_filter('ltple_api_layer_plan_option_total', array( $this, 'add_api_layer_plan_option_total'),10,2);
+		add_filter('ltple_api_layer_plan_option', array( $this, 'filter_api_layer_plan_option'),10,2);	
+		add_filter('ltple_api_layer_plan_option_total', array( $this, 'filter_api_layer_plan_option_total'),10,2);
 		
-		add_filter('ltple_plan_table', array( $this, 'add_plan_table_attributes'),10,2);
+		add_filter('ltple_plan_table_services', array( $this, 'add_plan_table_attributes'),10,2);
 		add_filter('ltple_plan_subscribed', array( $this, 'handle_subscription_plan'),10);
 		
 		add_filter('ltple_user_plan_option_total', array( $this, 'add_user_plan_option_total'),10,2);
@@ -1943,7 +1941,7 @@ class LTPLE_Domains {
 		return $completeness;
 	}	
 
-	public function add_account_options($term_id){
+	public function add_account_options($options,$term_id){
 		
 		if(!$domain_amount = $this->parent->layer->get_plan_amount($term_id,'domain')){
 			
@@ -1955,8 +1953,10 @@ class LTPLE_Domains {
 			$subdomain_amount = 0;
 		}
 
-		$this->parent->layer->options['domain_amount'] 		= $domain_amount;
-		$this->parent->layer->options['subdomain_amount'] 	= $subdomain_amount;
+		$options['domain_amount'] 		= $domain_amount;
+		$options['subdomain_amount'] 	= $subdomain_amount;
+	
+		return $options;
 	}
 	
 	public function add_layer_plan_fields( $taxonomy, $term_id ){
@@ -2005,7 +2005,7 @@ class LTPLE_Domains {
 
 			$fields.='<span class="input-group-addon" style="color: #fff;padding: 5px 10px;background: #9E9E9E;">+</span>';
 			
-			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-domain-amount" id="'.$taxonomy_name.'-domain-amount" style="width: 60px;" value="'.$domain_amount.'"/>';					
+			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-domain-amount" id="'.$taxonomy_name.'-domain-amount" style="width:80px;" value="'.$domain_amount.'"/>';					
 			
 		$fields.='</div>';
 		
@@ -2033,7 +2033,7 @@ class LTPLE_Domains {
 
 			$fields.='<span class="input-group-addon" style="color: #fff;padding: 5px 10px;background: #9E9E9E;">+</span>';
 			
-			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-subdomain-amount" id="'.$taxonomy_name.'-subdomain-amount" style="width: 60px;" value="'.$subdomain_amount.'"/>';					
+			$fields.='<input type="number" step="1" min="0" max="1000" placeholder="0" name="'.$taxonomy_name.'-subdomain-amount" id="'.$taxonomy_name.'-subdomain-amount" style="width:80px;" value="'.$subdomain_amount.'"/>';					
 			
 		$fields.='</div>';
 		
@@ -2054,95 +2054,65 @@ class LTPLE_Domains {
 			$this->parent->layer->update_plan_amount($term->term_id,'subdomain',round(intval(sanitize_text_field($_POST[$term->taxonomy . '-subdomain-amount'])),1));			
 		}		
 	}
-	
-	public function add_layer_columns(){
-		
-		$this->parent->layer->columns['domains'] = 'Domains';
-	}
-	
-	public function add_layer_column_content($column_name, $term){
-		
-		if( $column_name === 'domains') {
-			
-			// display domain amount
-			
-			if(!$domain_amount = $this->parent->layer->get_plan_amount($term->term_id,'domain')){
-				
-				$domain_amount = 0;
-			}
-			
-			if( $domain_amount == 1 ){
-				
-				$this->parent->layer->column .= '+' . $domain_amount . ' domain' . '</br>';
-			}
-			elseif( $domain_amount == 0 ){
-				
-				$this->parent->layer->column .= $domain_amount . ' domains' . '</br>';
-			}
-			else{
-				
-				$this->parent->layer->column .= '+' . $domain_amount . ' domains' . '</br>';
-			}
-			
-			// display subdomain amount
-			
-			if(!$subdomain_amount = $this->parent->layer->get_plan_amount($term->term_id,'subdomain')){
-				
-				$subdomain_amount = 0;
-			}			
-			
-			if( $subdomain_amount == 1 ){
-				
-				$this->parent->layer->column .= '+' . $subdomain_amount . ' subdomain' . '</br>';
-			}
-			elseif( $subdomain_amount == 0 ){
-				
-				$this->parent->layer->column .= $subdomain_amount . ' subdomains' . '</br>';
-			}
-			else{
-				
-				$this->parent->layer->column .= '+' . $subdomain_amount . ' subdomains' . '</br>';
-			}
-		}
-	}
-	
-	public function add_api_layer_plan_option ($term){
-		
-		$this->parent->admin->html .= '<td>';
-		
-			$this->parent->admin->html .= '<span style="display:block;padding:1px 0 3px 0;margin:0;">';
-				
-				if($term->options['domain_amount']==1){
-					
-					$this->parent->admin->html .= '+'.$term->options['domain_amount'].' dom';
-				}
-				elseif($term->options['domain_amount']>0){
-					
-					$this->parent->admin->html .= '+'.$term->options['domain_amount'].' doms';
-				}	
-				else{
-					
-					$this->parent->admin->html .= $term->options['domain_amount'].' doms';
-				}
-				
-				$this->parent->admin->html .= ' / ';
 
-				if($term->options['subdomain_amount']==1){
-					
-					$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' sub';
-				}
-				elseif($term->options['subdomain_amount']>0){
-					
-					$this->parent->admin->html .= '+'.$term->options['subdomain_amount'].' subs';
-				}	
-				else{
-					
-					$this->parent->admin->html .= $term->options['subdomain_amount'].' subs';
-				}						
+	public function filter_layer_column_content($content, $term){
 		
-			$this->parent->admin->html .= '</span>';
+		// display domain amount
 		
-		$this->parent->admin->html .= '</td>';
+		if(!$domain_amount = $this->parent->layer->get_plan_amount($term->term_id,'domain')){
+			
+			$domain_amount = 0;
+		}
+		
+		if( $domain_amount == 1 ){
+			
+			$content .= '+' . $domain_amount . ' domain' . '</br>';
+		}
+		elseif( $domain_amount > 1 ){
+			
+			$content .= '+' . $domain_amount . ' domains' . '</br>';
+		}
+		
+		// display subdomain amount
+		
+		if(!$subdomain_amount = $this->parent->layer->get_plan_amount($term->term_id,'subdomain')){
+			
+			$subdomain_amount = 0;
+		}			
+		
+		if( $subdomain_amount == 1 ){
+			
+			$content .= '+' . $subdomain_amount . ' subdomain' . '</br>';
+		}
+		elseif( $subdomain_amount > 1 ){
+			
+			$content .= '+' . $subdomain_amount . ' subdomains' . '</br>';
+		}
+
+		return $content;
+	}
+	
+	public function filter_api_layer_plan_option($html,$term){
+		
+		if( $term->options['domain_amount'] == 1 ){
+			
+			$html .= '+'.$term->options['domain_amount'].' domain' .'<br>';
+		}
+		elseif( $term->options['domain_amount'] > 1 ){
+			
+			$html .= '+'.$term->options['domain_amount'].' domains' .'<br>';
+		}
+		
+		if( $term->options['subdomain_amount'] == 1 ){
+			
+			$html .= '+'.$term->options['subdomain_amount'].' subdomain' .'<br>';
+		}
+		elseif( $term->options['subdomain_amount'] > 1 ){
+			
+			$html .= '+'.$term->options['subdomain_amount'].' subdomains' .'<br>';
+		}						
+
+		return $html;
 	}	
 	
 	public function sum_domain_amount( &$total_domain_amount=0, $options){
@@ -2165,54 +2135,31 @@ class LTPLE_Domains {
 		return $total_subdomain_amount;
 	}
 	
-	public function add_api_layer_plan_option_total($taxonomies,$plan_options){
+	public function filter_api_layer_plan_option_total($html,$user_plan){
 
-		$total_domain_amount 	= 0;
-		$total_subdomain_amount = 0;	
-	
-		foreach ( $taxonomies as $taxonomy => $terms ) {
-	
-			foreach($terms as $term){
+		$total_domain_amount = !empty($user_plan['info']['total_domain_amount']) ? $user_plan['info']['total_domain_amount'] : 0;
 
-				if ( in_array( $term->slug, $plan_options ) ) {
-					
-					$total_domain_amount 	= $this->sum_domain_amount( $total_domain_amount, $term->options);
-					$total_subdomain_amount = $this->sum_subdomain_amount( $total_subdomain_amount, $term->options);
-				}
-			}
+		if( $total_domain_amount == 1 ){
+			
+			$html .= '+'.$total_domain_amount.' domain'.'<br>';
+		}
+		elseif( $total_domain_amount > 1 ){
+			
+			$html .= '+'.$total_domain_amount.' domains'.'<br>';
 		}
 		
-		$this->parent->admin->html .= '<td style="width:150px;">';
-		
-			if($total_domain_amount==1){
-				
-				$this->parent->admin->html .= '+'.$total_domain_amount.' domain';
-			}
-			elseif($total_domain_amount>0){
-				
-				$this->parent->admin->html .= '+'.$total_domain_amount.' domains';
-			}									
-			else{
-				
-				$this->parent->admin->html .= $total_domain_amount.' domains';
-			}
+		$total_subdomain_amount = !empty($user_plan['info']['total_subdomain_amount']) ? $user_plan['info']['total_subdomain_amount'] : 0;
+
+		if( $total_subdomain_amount == 1 ){
 			
-			$this->parent->admin->html .= '<br/>';
+			$html .= '+'.$total_subdomain_amount.' subdomain'.'<br>';
+		}
+		elseif( $total_subdomain_amount > 1 ){
 			
-			if($total_subdomain_amount==1){
-				
-				$this->parent->admin->html .= '+'.$total_subdomain_amount.' subdomain';
-			}
-			elseif($total_subdomain_amount>0){
-				
-				$this->parent->admin->html .= '+'.$total_subdomain_amount.' subdomains';
-			}									
-			else{
-				
-				$this->parent->admin->html .= $total_subdomain_amount.' subdomains';
-			}			
-		
-		$this->parent->admin->html .= '</td>';		
+			$html .= '+'.$total_subdomain_amount.' subdomains'.'<br>';
+		}			
+
+		return $html;		
 	}
 	
 	public function get_subscription_plan_info($plan,$options){
