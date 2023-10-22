@@ -44,7 +44,7 @@ class LTPLE_Domains {
 		$this->views   		= trailingslashit( $this->dir ) . 'views';
 		$this->vendor  		= WP_CONTENT_DIR . '/vendor';
 		$this->assets_dir 	= trailingslashit( $this->dir ) . 'assets';
-		$this->assets_url 	= home_url( trailingslashit( str_replace( ABSPATH, '', $this->dir ))  . 'assets/' );
+		$this->assets_url 	= esc_url( trailingslashit( plugins_url( '/assets/', $this->file ) ) );
 		
 		//$this->script_suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 		$this->script_suffix = '';
@@ -82,8 +82,10 @@ class LTPLE_Domains {
 
 		//init addon 
 		
+		add_action('init', array( $this, 'register_storages' ), 0 );
+		
 		add_action('wp_loaded', array( $this, 'init_domain' ));
-
+		
 		add_filter('ltple_preview_profile_tab', array($this,'filter_preview_profile_tab'),10,2);
 
 		add_filter('ltple_preview_post_url', array($this,'filter_preview_user_profile_link'),99999,2 );
@@ -1093,8 +1095,8 @@ class LTPLE_Domains {
 		);
 	}
 	
-	public function init_domain(){
-		
+	public function register_storages(){
+
 		// storages
 			
 		if( $storages = $this->get_user_site_storages() ){
@@ -1108,6 +1110,9 @@ class LTPLE_Domains {
 				add_filter('ltple_'.$storage.'_layer_area', array( $this, 'filter_user_profile_area'),10);
 			}
 		}
+	}
+		
+	public function init_domain(){
 		
 		// pages
 		

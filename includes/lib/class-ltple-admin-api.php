@@ -528,7 +528,7 @@ class LTPLE_Domains_Admin_API {
 	 */
 	public function save_meta_boxes ( $post_id = 0 ) {
 
-		if ( ! $post_id ) return;
+		if( !$post_id || isset($_POST['_inline_edit']) || isset($_GET['bulk_edit']) ) return;
 
 		$post_type = get_post_type( $post_id );
 
