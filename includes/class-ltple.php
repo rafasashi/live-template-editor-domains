@@ -2188,7 +2188,7 @@ class LTPLE_Domains {
 			
 			$table .= '<div id="section_'.$md5.'" class="panel-collapse collapse">';
 				
-				$table .= '<table id="plan_domains" class="able-striped">';
+				$table .= '<table id="plan_domains" class="table table-striped">';
 					
 					if( $total_domain_amount > 0 ){
 

@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Live Template Editor Domains
- * Version: 1.0.3.36
+ * Version: 1.0.3.37
  * Plugin URI: https://github.com/rafasashi
  * Description: Domain and subdomain management addon for Live Template Editor
  * Author: Rafasashi
