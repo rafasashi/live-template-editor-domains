@@ -2184,7 +2184,7 @@ class LTPLE_Domains {
 			
 			$md5 = md5(rand());
 			
-			$table .='<a data-toggle="collapse" data-target="#section_'.$md5.'" class="plan_section">Domain Name <i class="fas fa-angle-down pull-right" style="font-size:25px;"></i></a>';
+			$table .='<a data-toggle="collapse" data-bs-toggle="collapse" data-target="#section_'.$md5.'" data-bs-target="#section_'.$md5.'" class="plan_section">Domain Name <i class="fas fa-angle-down pull-right" style="font-size:25px;"></i></a>';
 			
 			$table .= '<div id="section_'.$md5.'" class="panel-collapse collapse">';
 				
@@ -2237,7 +2237,7 @@ class LTPLE_Domains {
 					
 							$table .= '<th style="width:80%;">';	
 								
-								$table .= '<div data-html="true" data-toggle="popover" data-placement="bottom" data-trigger="hover" data-title="Domains" data-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name.">';
+								$table .= '<div data-html="true" data-toggle="popover" data-bs-toggle="popover" data-placement="bottom" data-bs-placement="bottom" data-trigger="hover" data-bs-trigger="hover" data-title="Domains" data-bs-title="Domains" data-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name." data-bs-content="Choose from the list of available domains, and replace the asterisk (*) with your desired subdomain name.">';
 								
 									$table .= 'Subdomains';
 								
