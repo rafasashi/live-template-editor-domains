@@ -1130,9 +1130,9 @@ class LTPLE_Domains {
 			
 			// request uri
 
-			$request_uri = false;
+			$request_uri = $_SERVER['REQUEST_URI'];
 			
-			if( !empty($_GET['preview']) && $_GET['preview'] == 'ltple' ){
+			if( !empty($_GET['preview']) ){
 				
 				$prefix = '/' . $this->parent->profile->slug . '/' . $user_id;
 				
@@ -1140,10 +1140,6 @@ class LTPLE_Domains {
 				
 					$request_uri = str_replace( $prefix, '' , $_SERVER['REQUEST_URI'] );
 				}
-			}
-			else{
-				
-				$request_uri = $_SERVER['REQUEST_URI'];
 			}
 			
 			if( is_string($request_uri) ){
@@ -1248,8 +1244,6 @@ class LTPLE_Domains {
 		
 			// output subdomain layer
             
-			$this->parent->layer->set_layer($layer);
-
             $layer = LTPLE_Editor::instance()->get_layer($layer);
 
             echo $this->parent->layer->render_output($layer);
@@ -1763,13 +1757,15 @@ class LTPLE_Domains {
 
 	public function add_layer_url_input(){
 		
-		if( $this->parent->user->layer->post_type == 'user-page' && $this->parent->layer->is_public($this->parent->user->layer) && $this->parent->layer->is_hosted($this->parent->user->layer) ){
+        $layer = LTPLE_Editor::instance()->get_layer();
+        
+		if( $layer->post_type == 'user-page' && $this->parent->layer->is_public($layer) && $this->parent->layer->is_hosted($layer) ){
 			
 			echo'<div id="layer_url" style="margin:15px 0 0 0;padding:15px 0 0 0;border-top:1px solid #eee;">';
 				
 				echo'<label style="margin:0 11px 0 7px;">URL</label>';
 				
-				if( $this->parent->layer->can_customize_url($this->parent->user->layer) ){
+				if( $this->parent->layer->can_customize_url($layer) ){
 				
 					echo'<select name="domainUrl[domainId]" class="form-control input-sm" style="width:auto;display:inline-block;">';
 						
@@ -1785,7 +1781,7 @@ class LTPLE_Domains {
 								
 								foreach( $domains as $domain ){
 								
-									if( isset($domain->domainUrls[$this->parent->user->layer->ID]) ){
+									if( isset($domain->domainUrls[$layer->ID]) ){
 										
 										$domainName = $domain->post_title;
 									}																
@@ -1803,15 +1799,15 @@ class LTPLE_Domains {
 					
 					echo' / ';
 					
-					$domainPath = $this->parent->user->layer->post_name;
+					$domainPath = $layer->post_name;
 					
 					foreach($this->parent->user->domains->list as $domains){
 						
 						foreach($domains as $domain){
 						
-							if(isset($domain->urls[$this->parent->user->layer->ID])){
+							if(isset($domain->urls[$layer->ID])){
 								
-								$domainPath = $domain->urls[$this->parent->user->layer->ID];
+								$domainPath = $domain->urls[$layer->ID];
 							}
 						}
 					}
@@ -1820,9 +1816,9 @@ class LTPLE_Domains {
 					
 					echo'<input type="text" name="domainUrl[domainPath]" value="'.$domainPath.'" placeholder="category/page-title" class="form-control input-sm" style="width:270px;display:inline-block;" required="required" />';
 				}
-				elseif( $this->parent->user->layer->post_status == 'publish' ){
+				elseif( $layer->post_status == 'publish' ){
 					
-					$permalink 	= $this->get_permalink($this->parent->user->layer);
+					$permalink 	= $this->get_permalink($layer);
 	
 					echo '<a href="' . $permalink . '" target="_blank">' . $permalink . '</a>';
 				}
