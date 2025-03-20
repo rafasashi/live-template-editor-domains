@@ -194,7 +194,7 @@ class LTPLE_Domains {
 		
 		// addon post types
 		
-		$this->parent->register_post_type('user-domain', __( 'User domains', 'live-template-editor-client' ), __( 'User domains', 'live-template-editor-client' ), '', array(
+		$this->parent->register_post_type('user-domain','User domains','User domains', '', array(
 
 			'public' 				=> false,
 			'publicly_queryable' 	=> false,
@@ -215,7 +215,7 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 		
-		$this->parent->register_post_type('user-theme', __( 'Themes', 'live-template-editor-profile' ), __( 'Theme', 'live-template-editor-profile' ), '', array(
+		$this->parent->register_post_type('user-theme','Themes','Theme', '', array(
 			
 			'public' 				=> true,
 			'publicly_queryable' 	=> true,
@@ -237,7 +237,7 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 		
-		$this->parent->register_post_type('user-profile', __( 'Home Pages', 'live-template-editor-domains' ), __( 'Home Page', 'live-template-editor-domains' ), '', array(
+		$this->parent->register_post_type('user-profile','Home Pages','Home Page', '', array(
 
 			'public' 				=> true,
 			'publicly_queryable' 	=> true,
@@ -259,7 +259,7 @@ class LTPLE_Domains {
 			'menu_icon' 			=> 'dashicons-admin-post',
 		));
 		
-		$this->parent->register_post_type('user-page', __( 'Static Pages', 'live-template-editor-client' ), __( 'Static Page', 'live-template-editor-client' ), '', array(
+		$this->parent->register_post_type('user-page','Static Pages','Static Page', '', array(
 
 			'public' 				=> true,
 			'publicly_queryable' 	=> true,
@@ -1247,10 +1247,12 @@ class LTPLE_Domains {
 		if( !empty($layer) && $layer->post_status == 'publish' ){
 		
 			// output subdomain layer
-						
+            
 			$this->parent->layer->set_layer($layer);
-					
-			include( $this->parent->views . '/layer.php' );
+
+            $layer = LTPLE_Editor::instance()->get_layer($layer);
+
+            echo $this->parent->layer->render_output($layer);
 		}
 		else{
 			
