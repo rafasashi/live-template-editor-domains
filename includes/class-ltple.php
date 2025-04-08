@@ -1239,7 +1239,7 @@ class LTPLE_Domains {
 	}
 	
 	public function set_user_layer($layer){
-
+        
 		if( !empty($layer) && $layer->post_status == 'publish' ){
 		
 			// output subdomain layer

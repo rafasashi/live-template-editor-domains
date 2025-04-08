@@ -179,71 +179,76 @@ class LTPLE_Domains_User {
 	public function edit_layer_url(){
 		
 		// update urls
-		
-		if( !empty($this->parent->user->layer) && !empty($_POST['postAction']) && $_POST['postAction'] == 'edit' && isset($_POST['domainUrl']['domainId']) && isset($_POST['domainUrl']['domainPath']) ){
+		    
+		if( !empty($_POST['postAction']) && $_POST['postAction'] == 'edit' && isset($_POST['domainUrl']['domainId']) && isset($_POST['domainUrl']['domainPath']) ){
 			
-			$domainId 	= floatval($_POST['domainUrl']['domainId']);
-			
-			$domainPath = sanitize_text_field($_POST['domainUrl']['domainPath']);
-			
-			if( is_numeric($domainId) && !empty($domainPath) ){
-				
-				foreach( $this->list as $domain_type => $domains ){
-					
-					foreach( $domains as $domain ){
-						
-						if( $domainId == $domain->ID ){
-							
-							if( !empty($domain->urls) && in_array( $domainPath, $domain->urls ) ){
-								
-								// unset previous url
-								
-								foreach($domain->urls as $id => $path){
-									
-									if( $path == $domainPath ){
-										
-										unset($domain->urls[$id]);
-									}
-								}
-							}
-							
-							// update domain url
+            $layer = LTPLE_Editor::instance()->get_layer();
 
-							$domain->urls[$this->parent->user->layer->ID] = $domainPath;
-						
-							update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
-						}
-						elseif( $domainId == -1 && isset($domain->urls[$this->parent->user->layer->ID]) ){
-							
-							// unset domain url
-							
-							unset($domain->urls[$this->parent->user->layer->ID]);
-							
-							update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
-						}
-					}
-				}
-				
-				if( $domainId == -1 ){
-					
-					// update post slug
-					
-					wp_update_post( array(
-					
-						'ID' 			=> $this->parent->user->layer->ID,
-						'post_name'		=> trailingslashit($domainPath),
-						'post_status'	=> 'draft',
-					));
-				}
-				else{
-					
-					wp_update_post( array(
-					
-						'ID' 			=> $this->parent->user->layer->ID,
-						'post_status'	=> 'publish',
-					));
-				}
-			}
+            if( !empty($layer) && intval($layer->post_author) == $this->parent->user->ID ){
+                
+                $domainId 	= floatval($_POST['domainUrl']['domainId']);
+                
+                $domainPath = sanitize_text_field($_POST['domainUrl']['domainPath']);
+                
+                if( is_numeric($domainId) && !empty($domainPath) ){
+                    
+                    foreach( $this->list as $domain_type => $domains ){
+                        
+                        foreach( $domains as $domain ){
+                            
+                            if( $domainId == $domain->ID ){
+                                
+                                if( !empty($domain->urls) && in_array( $domainPath, $domain->urls ) ){
+                                    
+                                    // unset previous url
+                                    
+                                    foreach($domain->urls as $id => $path){
+                                        
+                                        if( $path == $domainPath ){
+                                            
+                                            unset($domain->urls[$id]);
+                                        }
+                                    }
+                                }
+                                
+                                // update domain url
+
+                                $domain->urls[$layer->ID] = $domainPath;
+                            
+                                update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
+                            }
+                            elseif( $domainId == -1 && isset($domain->urls[$layer->ID]) ){
+                                
+                                // unset domain url
+                                
+                                unset($domain->urls[$layer->ID]);
+                                
+                                update_post_meta( $domain->ID, 'domainUrls', $domain->urls );
+                            }
+                        }
+                    }
+                    
+                    if( $domainId == -1 ){
+                        
+                        // update post slug
+                        
+                        wp_update_post( array(
+                        
+                            'ID' 			=> $layer->ID,
+                            'post_name'		=> trailingslashit($domainPath),
+                            'post_status'	=> 'draft',
+                        ));
+                    }
+                    else{
+                        
+                        wp_update_post( array(
+                        
+                            'ID' 			=> $layer->ID,
+                            'post_status'	=> 'publish',
+                        ));
+                    }
+                }
+            }
 		}		
 	}
 	
