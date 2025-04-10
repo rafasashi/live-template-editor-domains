@@ -732,6 +732,11 @@ class LTPLE_Domains {
 		
 		if( strpos($this->parent->urls->current,$primary_domain) === 0 ){
 			
+            if( !defined('REDIRECTION_DISABLE') ){
+            
+                define('REDIRECTION_DISABLE',true);
+            }
+            
 			if( $this->parent->user->loggin )
 			
 				return;
